@@ -13,6 +13,7 @@ const openModal = (image) => {
 }
 
 const closeModal = () => {
+  zoomedImage.value = null // Reset image when closing
   showModal.value = false
 }
 </script>
@@ -22,7 +23,7 @@ const closeModal = () => {
     <!-- Background Video -->
     <div class="video-container">
       <video autoplay muted loop class="background-video">
-        <source src="/public/images/background.mp4" type="video/mp4" />
+        <source src="/images/background.mp4" type="video/mp4" />
       </video>
     </div>
 
@@ -36,14 +37,12 @@ const closeModal = () => {
 
         <!-- Navigation -->
         <v-spacer></v-spacer>
-        <!-- Desktop Navigation -->
         <nav v-if="!mobile">
           <router-link to="/home" class="nav-link">Home</router-link>
           <router-link to="#" class="nav-link">Fare</router-link>
           <router-link to="/contact" class="nav-link">Contact Us</router-link>
           <router-link to="/profile" class="nav-link">Profile</router-link>
         </nav>
-        <!-- Mobile Navigation Toggle -->
         <v-btn icon v-if="mobile" @click="drawer = !drawer">
           <v-icon color="white">mdi-menu</v-icon>
         </v-btn>
@@ -71,32 +70,28 @@ const closeModal = () => {
     <!-- Images Overlay -->
     <div class="image-container">
       <img
-        src="/public/images/tricyclefare.png"
+        src="/images/tricyclefare.png"
         alt="Tricycle Fare"
         class="overlay-image"
-        @click="openModal('/public/images/tricyclefare.png')"
+        @click="openModal('/images/tricyclefare.png')"
       />
       <img
-        src="/public/images/multicabfare.jpg"
+        src="/images/multicabfare.jpg"
         alt="Multicab Fare"
         class="overlay-image"
-        @click="openModal('/public/images/multicabfare.jpg')"
+        @click="openModal('/images/multicabfare.jpg')"
       />
     </div>
 
-    <!-- Zoomed Image Modal -->
-    <v-dialog v-model="showModal" max-width="800">
-      <v-card>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn icon @click="closeModal">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-actions>
-        <v-card-text>
-          <v-img :src="zoomedImage" max-width="100%" max-height="80vh" contain></v-img>
-        </v-card-text>
-      </v-card>
+    <!-- Fullscreen Zoomed Image -->
+    <v-dialog
+      v-model="showModal"
+      fullscreen
+      overlay-color="black"
+      transition="fade-transition"
+      persistent
+    >
+      <v-img :src="zoomedImage" class="zoomed-image" @click="closeModal"></v-img>
     </v-dialog>
 
     <RouterView />
@@ -168,91 +163,19 @@ const closeModal = () => {
   cursor: pointer;
 }
 
+/* Zoomed Image */
+.zoomed-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: black;
+  cursor: zoom-out;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 600px) {
-  .main-title {
-    font-size: 2rem;
-  }
-
-  .subtitle {
-    font-size: 1.2rem;
-  }
-
-  .nav-link {
-    margin-right: 20px;
-  }
-
-  .contact-button {
-    font-size: 0.9rem;
-    padding: 8px 15px;
-  }
-
-  .overlay {
-    left: 5%;
-  }
-
-  /* Navigation drawer */
-  .v-navigation-drawer {
-    width: 250px;
-    background-color: black;
-  }
-
-  .v-list-item {
-    padding: 16px 0;
-  }
-
-  .v-list-item a {
-    font-size: 1.1rem;
-    padding: 8px 16px;
-    color: #007bb5;
-  }
-
-  .v-list-item a:hover {
-    color: #00bfff;
-  }
-
   .overlay-image {
     width: 90%;
-  }
-}
-
-/* Additional Media Queries for Tablets and Larger Devices */
-@media (max-width: 768px) {
-  .main-title {
-    font-size: 4rem;
-  }
-
-  .subtitle {
-    font-size: 1.5rem;
-  }
-
-  .nav-link {
-    font-size: 1.1rem;
-    margin-right: 25px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .main-title {
-    font-size: 5.5rem;
-  }
-
-  .subtitle {
-    font-size: 1.8rem;
-  }
-}
-
-@media (min-width: 1025px) {
-  .main-title {
-    font-size: 7rem;
-  }
-
-  .subtitle {
-    font-size: 2rem;
-  }
-
-  .nav-link {
-    font-size: 1.2rem;
   }
 }
 </style>
