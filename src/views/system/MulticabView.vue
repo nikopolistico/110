@@ -1,124 +1,152 @@
 <template>
-  <v-container>
-    <!-- Row 1 -->
-    <v-row justify="center">
-      <v-col cols="auto" v-for="(route, index) in routes.slice(0, 3)" :key="index">
+      <!-- Background Video -->
+      <div class="video-container">
+      <video autoplay muted loop class="background-video">
+        <source src="/public/images/background.mp4" type="video/mp4" />
+      </video>
+    </div>
+    <div class="routes-container">
+      <h1>ROUTES FOR MULTICAB</h1>
+      <div class="routes-grid">
+        <!-- Displaying Routes -->
         <div
-          class="flip-container"
-          @mouseenter="hoveredButton = index"
-          @mouseleave="hoveredButton = null"
+          v-for="(route, index) in routes"
+          :key="index"
+          class="route-card group"
         >
-          <div :class="['flipper', { flipped: hoveredButton === index }]">
-            <!-- Front Side -->
-            <v-btn height="72" min-width="164" class="flip-front">
-              <v-icon class="mr-1">mdi mdi-jeepney</v-icon>
-            </v-btn>
-            <!-- Back Side -->
-
-            <v-btn height="72" min-width="164" class="flip-back">
-              <RouterLink to="/map" style="text-decoration: none">Route {{ route }}</RouterLink>
-            </v-btn>
-          </div>
+          <button
+            @click="goToRouteDetails(route)"
+            class="route-button"
+          >
+            <div class="route-icon group-hover:bg-black">
+              <i class="mdi mdi-jeepney group-hover:text-white"></i>
+            </div>
+            <span>Route {{ route }}</span>
+          </button>
         </div>
-      </v-col>
-    </v-row>
-    <!-- Row 2 -->
-    <v-row justify="center">
-      <v-col cols="auto" v-for="(route, index) in routes.slice(3, 6)" :key="index + 3">
-        <div
-          class="flip-container"
-          @mouseenter="hoveredButton = index + 3"
-          @mouseleave="hoveredButton = null"
-        >
-          <div :class="['flipper', { flipped: hoveredButton === index + 3 }]">
-            <!-- Front Side -->
-            <v-btn height="72" min-width="164" class="flip-front">
-              <v-icon class="mr-1">mdi mdi-jeepney</v-icon>
-            </v-btn>
-            <!-- Back Side -->
-            <v-btn height="72" min-width="164" class="flip-back">
-              <RouterLink to="/map" style="text-decoration: none">Route {{ route }}</RouterLink>
-            </v-btn>
-          </div>
-        </div>
-      </v-col>
-    </v-row>
-    <!-- Row 3 -->
-    <v-row justify="center">
-      <v-col cols="auto" v-for="(route, index) in routes.slice(6, 9)" :key="index + 6">
-        <div
-          class="flip-container"
-          @mouseenter="hoveredButton = index + 6"
-          @mouseleave="hoveredButton = null"
-        >
-          <div :class="['flipper', { flipped: hoveredButton === index + 6 }]">
-            <!-- Front Side -->
-            <v-btn height="72" min-width="164" class="flip-front">
-              <v-icon class="mr-1">mdi mdi-jeepney</v-icon>
-            </v-btn>
-            <!-- Back Side -->
-            <v-btn height="72" min-width="164" class="flip-back">
-              <RouterLink to="/map" style="text-decoration: none">Route {{ route }} </RouterLink>
-            </v-btn>
-          </div>
-        </div>
-      </v-col>
-    </v-row>
-  </v-container>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      routes: [1, 2, 4, 7, 8, 10, 11, 13, 14], // Route numbers
-      hoveredButton: null, // Track which button is hovered
-    }
-  },
-}
-</script>
-
-<style scoped>
-.flip-container {
-  perspective: 1000px;
-  transform: translate(0%, 250%);
+      </div>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+    data() {
+      return {
+        routes: ["1", "2", "4", "7", "8", "10", "12", "13", "14"],
+      };
+    },
+    methods: {
+      goToRouteDetails(routeId) {
+        this.$router.push({
+          name: "route-detail",
+          params: {
+            routeId,
+            vehicleType: "multicab",
+          },
+        });
+      },
+    },
+  };
+  </script>
+  
+  <style scoped>
+  /* Background Video */
+  .background-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: -1; /* Ensure the video stays in the background */
+  }
+  
+  /* Video Container */
+  .video-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1; /* Ensures it's behind the content */
+  }
+  
+.routes-container {
+  text-align: center;
+  background-color: #000;
+  color: #fff;
+  padding: 20px;
 }
 
-.flipper {
-  position: relative;
-  width: 164px;
-  height: 72px;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
+h1 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
-.flipper.flipped {
-  transform: rotateY(180deg);
+.routes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Force 3 columns */
+  gap: 20px;
 }
 
-.flip-front,
-.flip-back {
-  position: absolute;
-  top: 0;
-  left: 0;
-  backface-visibility: hidden;
-  width: 100%;
-  height: 100%;
+.route-card {
+  background-color: #1a1a1a;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s;
 }
 
-.flip-front {
-  background-color: #1c85be;
+.route-card:hover {
+  transform: scale(1.05);
+  background-color: #00bfff;
+  color: #000;
+}
+
+.route-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.route-icon {
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #00bfff;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  color: #000;
+  font-size: 24px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-.flip-back {
-  background-color: #c9ecef;
-  color: white;
-  transform: rotateY(180deg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.route-icon i {
+  font-size: 24px;
+}
+
+.route-card:hover .route-icon {
+  background-color: #000;
+  color: #fff;
+}
+
+.route-card span {
+  font-size: 18px;
 }
 </style>

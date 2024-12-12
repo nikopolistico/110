@@ -28,9 +28,10 @@ const drawer = ref(false)
         <!-- Desktop Navigation -->
         <nav v-if="!mobile">
           <router-link to="#" class="nav-link">Home</router-link>
+          <router-link to="/routes" class="nav-link">Ride</router-link>
           <router-link to="/fare" class="nav-link">Fare</router-link>
           <router-link to="/contact" class="nav-link">Contact Us</router-link>
-          <router-link to="#" class="nav-link">Profile</router-link>
+          <router-link to="/profile" class="nav-link">Profile</router-link>
         </nav>
         <!-- Mobile Navigation Toggle -->
         <v-btn icon v-if="mobile" @click="drawer = !drawer">
@@ -104,7 +105,7 @@ const drawer = ref(false)
 }
 
 .main-title {
-  font-size: 7rem;
+  font-size: 5rem; /* Adjust this value as needed */
   font-weight: bold;
   text-transform: uppercase;
   text-shadow:
@@ -112,7 +113,6 @@ const drawer = ref(false)
     4px 4px 10px rgba(254, 254, 254, 0.8);
   margin-bottom: 10px;
 }
-
 .subtitle {
   font-size: 1rem;
   text-transform: uppercase;
@@ -236,7 +236,7 @@ const drawer = ref(false)
 
 @media (min-width: 1025px) {
   .main-title {
-    font-size: 7rem;
+    font-size: 5rem;
   }
 
   .subtitle {

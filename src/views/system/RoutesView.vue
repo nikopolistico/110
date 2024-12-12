@@ -23,10 +23,11 @@ const { mobile } = useDisplay()
 
         <!-- Desktop Navigation -->
         <nav v-if="!mobile" class="desktop-nav">
-          <router-link to="#" class="nav-link">Home</router-link>
+          <router-link to="/home" class="nav-link">Home</router-link>
+          <router-link to="#" class="nav-link">Ride</router-link>
           <router-link to="/fare" class="nav-link">Fare</router-link>
           <router-link to="/contact" class="nav-link">Contact Us</router-link>
-          <router-link to="#" class="nav-link">Profile</router-link>
+          <router-link to="/profile" class="nav-link">Profile</router-link>
         </nav>
 
         <!-- Mobile Menu Icon -->
@@ -124,17 +125,17 @@ const { mobile } = useDisplay()
 .custom-btn {
   font-weight: bold; /* Adjust font weight for a bolder appearance */
   padding: 16px 24px; /* Increase padding for a 'heavier' feel */
-  border: 3px solid #1c85be; /* Add a thicker border */
-  background-color: #1c85be; /* Button background color */
-  color: #ffffff; /* Text color */
+  border: 3px solid #ffffff; /* Add a thicker border */
+  background-color: #ffffff; /* Button background color */
+  color: #000000; /* Text color */
   text-transform: uppercase; /* Optional: Make text uppercase */
   transition: all 0.3s ease; /* Smooth transitions for hover effects */
 }
 
 .custom-btn:hover {
-  background-color: #ffffff; /* Change background on hover */
-  color: #1c85be; /* Change text color on hover */
-  border-color: #ffffff; /* Change border color on hover */
+  background-color: #000000; /* Change background on hover */
+  color: #ffffff; /* Change text color on hover */
+  border-color: #000000; /* Change border color on hover */
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Add shadow for hover effect */
 }
 
@@ -143,50 +144,13 @@ const { mobile } = useDisplay()
 }
 
 .first-row {
-  transform: translate(32%, 200%);
+  transform: translate(32%, 150%);
   width: 60%;
 }
 
 .second-row {
-  transform: translate(32%, 400%);
+  transform: translate(32%, 300%);
   width: 60%;
 }
-@media (max-width: 600px) {
-  .nav-link {
-    font-size: 0.9rem; /* Adjust font size */
-    margin-right: 20px; /* Reduce spacing */
-  }
 
-  .custom-btn {
-    font-size: 0.8rem; /* Smaller button text */
-    padding: 10px 15px; /* Reduce padding */
-  }
-
-  .button-row {
-    margin-top: 10px; /* Adjust spacing for mobile */
-  }
-
-  .first-row,
-  .second-row {
-    transform: none;
-    width: 90%; /* Full width on small screens */
-    margin: 0 auto; /* Center align */
-  }
-}
-
-@media (min-width: 601px) {
-  .button-row {
-    margin-top: 20px; /* Default spacing */
-  }
-
-  .first-row {
-    transform: translate(32%, 200%);
-    width: 60%;
-  }
-
-  .second-row {
-    transform: translate(32%, 400%);
-    width: 60%;
-  }
-}
 </style>
