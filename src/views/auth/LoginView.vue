@@ -20,7 +20,7 @@ const isMobile = computed(() => xsOnly.value)
     <v-app-bar app flat class="transparent-navbar">
       <v-container class="d-flex align-center">
         <!-- Logo -->
-        <v-app-bar-title class="text-h5 font-weight-bold white-text-custom">
+        <v-app-bar-title class="logo">
           Easy Commute
         </v-app-bar-title>
 
@@ -184,10 +184,10 @@ const isMobile = computed(() => xsOnly.value)
 
 .logo {
   font-size: 2em;
+  font-weight: bold;
   color: white;
   user-select: none;
-  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva,
-    Verdana, sans-serif;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
 }
 .transparent-navbar {
   background-color: transparent;
@@ -272,19 +272,19 @@ const isMobile = computed(() => xsOnly.value)
 }
 /* Adjustments for smaller screens */
 @media (max-width: 900px) {
-  .v-app-bar-title {
+  .logo {
     font-size: 1em;
   }
 }
 
 @media (max-width: 600px) {
-  .v-app-bar-title {
+  .logo {
     font-size: 1em;
   }
 }
 
 @media (max-width: 400px) {
-  .v-app-bar-title {
+  .logo {
     font-size: 1em;
   }
 }
@@ -356,7 +356,7 @@ const isMobile = computed(() => xsOnly.value)
 
 /* Small Devices (e.g., Phones) */
 @media (max-width: 600px) {
-  .flexible-form {
+  .transparent-card {
     max-height: 80vh; /* Limit height for smaller screens */
     overflow-y: auto;
     /* Add padding for better usability */
@@ -364,9 +364,10 @@ const isMobile = computed(() => xsOnly.value)
   }
 }
 
+
 /* Medium Devices (e.g., Tablets) */
 @media (min-width: 601px) and (max-width: 960px) {
-  .flexible-form {
+  .transparent-card {
     max-height: 80vh; /* Adjust height for medium screens */
     overflow-y: auto;
     background-color: transparent; /* Keep background transparent */

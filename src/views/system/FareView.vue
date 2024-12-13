@@ -31,9 +31,7 @@ const closeModal = () => {
     <v-app-bar app flat class="transparent-navbar">
       <v-container class="d-flex align-center">
         <!-- Logo -->
-        <v-app-bar-title class="text-h5 font-weight-bold white-text-custom">
-          Easy Commute
-        </v-app-bar-title>
+        <v-app-bar-title class="logo-container"> Easy Commute </v-app-bar-title>
 
         <!-- Navigation -->
         <v-spacer></v-spacer>
@@ -54,7 +52,7 @@ const closeModal = () => {
     <v-navigation-drawer v-model="drawer" temporary class="mobile-drawer">
       <v-list>
         <v-list-item>
-          <router-link to="#" class="nav-link">Home</router-link>
+          <router-link to="/home" class="nav-link">Home</router-link>
         </v-list-item>
         <v-list-item>
           <router-link to="/routes" class="nav-link">Ride</router-link>
@@ -72,13 +70,16 @@ const closeModal = () => {
     </v-navigation-drawer>
 
     <!-- Images Overlay -->
-    <div class="image-container">
+    <div class="image-container-1">
       <img
         src="/images/tricyclefare.png"
         alt="Tricycle Fare"
         class="overlay-image"
         @click="openModal('/images/tricyclefare.png')"
       />
+    </div>
+
+    <div class="image-container-2">
       <img
         src="/images/multicabfare.jpg"
         alt="Multicab Fare"
@@ -103,6 +104,29 @@ const closeModal = () => {
 </template>
 
 <style scoped>
+.logo-container {
+  display: flex;
+  align-items: center;
+  font-size: 2rem; /* Large screens default size */
+  font-weight: bold;
+  text-align: center;
+  color: white; /* Ensures visibility on dark backgrounds */
+  transition: font-size 0.3s ease;
+}
+
+@media (max-width: 1200px) {
+  .logo-container {
+    font-size: 1.5rem; /* Medium screens */
+  }
+}
+
+@media (max-width: 600px) {
+  .logo-container {
+    font-size: 1.2rem; /* Small screens (mobile devices) */
+    justify-content: center;
+  }
+}
+
 /* Background Video */
 .background-video {
   position: fixed;
@@ -148,7 +172,8 @@ const closeModal = () => {
 }
 
 /* Image Container and Overlay Images */
-.image-container {
+.image-container-1,
+.image-container-2 {
   position: absolute;
   top: 20%;
   left: 50%;
@@ -160,11 +185,17 @@ const closeModal = () => {
   z-index: 1;
 }
 
+.image-container-2 {
+  transform: translateX(-50%) translateY(80%); /* Adjust the position of the second image */
+}
+
 .overlay-image {
-  width: 80%;
-  max-width: 600px;
+  width: 100%;
+  max-width: 600px; /* Keeps the image within a limit */
+  height: auto; /* Maintains aspect ratio */
   border-radius: 10px;
   cursor: pointer;
+  object-fit: contain;
 }
 
 /* Zoomed Image */
@@ -177,9 +208,72 @@ const closeModal = () => {
 }
 
 /* Mobile Responsiveness */
+
 @media (max-width: 600px) {
+  .main-title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+  }
+
+  .nav-link {
+    margin-right: 20px;
+  }
+
+  .contact-button {
+    font-size: 0.9rem;
+    padding: 8px 15px;
+  }
+
+  .overlay {
+    left: 5%;
+  }
+
+  /* Navigation drawer */
+  .v-navigation-drawer {
+    width: 250px;
+    background-color: black;
+  }
+
+  .v-list-item {
+    padding: 16px 0;
+  }
+
+  .v-list-item a {
+    font-size: 1.1rem;
+    padding: 8px 16px;
+    color: #007bb5;
+  }
+
+  .v-list-item a:hover {
+    color: #00bfff;
+  }
+}
+@media (max-width: 600px) {
+  /* Adjust image width */
   .overlay-image {
-    width: 90%;
+    width: 90%; /* Adjust width of images on mobile */
+    max-width: none; /* Remove max-width constraint */
+  }
+
+  /* Adjust image containers for better positioning on mobile */
+  .image-container-1,
+  .image-container-2 {
+    position: relative;
+    top: 10%; /* Adjust vertical position */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Reduce gap between images */
+  }
+
+  /* Image 2 (second image) */
+  .image-container-2 {
+    top: 20%; /* Adjust vertical position of the second image */
   }
 }
 </style>

@@ -4,6 +4,18 @@ import { useDisplay } from 'vuetify'
 
 const { mobile } = useDisplay()
 const drawer = ref(false)
+const zoomedImage = ref(null)
+const showModal = ref(false)
+
+const openModal = (image) => {
+  zoomedImage.value = image
+  showModal.value = true
+}
+
+const closeModal = () => {
+  zoomedImage.value = null // Reset image when closing
+  showModal.value = false
+}
 </script>
 
 <template>
@@ -19,7 +31,7 @@ const drawer = ref(false)
     <v-app-bar app flat class="transparent-navbar">
       <v-container class="d-flex align-center">
         <!-- Logo -->
-        <v-app-bar-title class="text-h5 font-weight-bold white-text-custom">
+        <v-app-bar-title class="logo">
           Easy Commute
         </v-app-bar-title>
 
@@ -47,13 +59,16 @@ const drawer = ref(false)
           <router-link to="#" class="nav-link">Home</router-link>
         </v-list-item>
         <v-list-item>
-          <router-link to="/complain" class="nav-link">Complain</router-link>
+          <router-link to="/routes" class="nav-link">Ride</router-link>
+        </v-list-item>
+        <v-list-item>
+          <router-link to="/fare" class="nav-link">Fare</router-link>
         </v-list-item>
         <v-list-item>
           <router-link to="/contact" class="nav-link">Contact Us</router-link>
         </v-list-item>
         <v-list-item>
-          <router-link to="#" class="nav-link">Profile</router-link>
+          <router-link to="/profile" class="nav-link">Profile</router-link>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
@@ -77,10 +92,11 @@ const drawer = ref(false)
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   z-index: -1;
+  min-height: 100vh; /* Ensures the video always covers the screen */
 }
 
 /* Video Container */
@@ -92,6 +108,15 @@ const drawer = ref(false)
   height: 100%;
   overflow: hidden;
 }
+.logo {
+  display: flex;
+  align-items: center;
+  font-size: 2rem; /* Large screens default size */
+  font-weight: bold;
+  text-align: center;
+  color: white; /* Ensures visibility on dark backgrounds */
+  transition: font-size 0.3s ease;
+}
 
 /* Overlay Styles for text and button */
 .overlay {
@@ -102,10 +127,11 @@ const drawer = ref(false)
   text-align: left;
   color: white;
   z-index: 1;
+  width: 90%; /* Ensures text fits well on smaller screens */
 }
 
 .main-title {
-  font-size: 5rem; /* Adjust this value as needed */
+  font-size: 5rem;
   font-weight: bold;
   text-transform: uppercase;
   text-shadow:
@@ -113,8 +139,9 @@ const drawer = ref(false)
     4px 4px 10px rgba(254, 254, 254, 0.8);
   margin-bottom: 10px;
 }
+
 .subtitle {
-  font-size: 1rem;
+  font-size: 1.5rem;
   text-transform: uppercase;
   margin-bottom: 20px;
   letter-spacing: 3px;
@@ -150,7 +177,7 @@ const drawer = ref(false)
   color: white;
   text-decoration: none;
   margin-right: 50px;
-  font-weight: 500;
+  font-weight: 400;
   transition: opacity 0.3s ease;
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva,
     Verdana, sans-serif;
@@ -163,28 +190,28 @@ const drawer = ref(false)
 .white-text-custom {
   color: white !important;
 }
-
 /* Mobile Responsiveness */
 @media (max-width: 600px) {
   .main-title {
-    font-size: 2rem;
+    font-size: 3rem;
   }
 
   .subtitle {
     font-size: 1.2rem;
   }
 
-  .nav-link {
-    margin-right: 20px;
-  }
-
   .contact-button {
-    font-size: 0.9rem;
+    font-size: 1rem;
     padding: 8px 15px;
   }
 
   .overlay {
     left: 5%;
+    width: 90%;
+  }
+
+  .nav-link {
+    margin-right: 20px;
   }
 
   /* Navigation drawer */
@@ -226,7 +253,7 @@ const drawer = ref(false)
 
 @media (max-width: 1024px) {
   .main-title {
-    font-size: 5.5rem;
+    font-size: 5rem;
   }
 
   .subtitle {
@@ -236,7 +263,7 @@ const drawer = ref(false)
 
 @media (min-width: 1025px) {
   .main-title {
-    font-size: 5rem;
+    font-size: 5.5rem;
   }
 
   .subtitle {
@@ -245,6 +272,25 @@ const drawer = ref(false)
 
   .nav-link {
     font-size: 1.2rem;
+  }
+}
+
+/* Adjustments for smaller screens */
+@media (max-width: 900px) {
+  .logo {
+    font-size: 1.5em;
+  }
+}
+
+@media (max-width: 600px) {
+  .logo {
+    font-size: 1.2em;
+  }
+}
+
+@media (max-width: 400px) {
+  .logo {
+    font-size: 1em;
   }
 }
 </style>

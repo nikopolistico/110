@@ -1,11 +1,6 @@
 <template>
   <div>
-    <!-- Background Video -->
-    <div class="video-container">
-      <video autoplay muted loop class="background-video">
-        <source src="/public/images/background.mp4" type="video/mp4" />
-      </video>
-    </div>
+
 
     <!-- Routes Container -->
     <div class="routes-container">
@@ -246,26 +241,7 @@ export default {
 <style>
 @import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 
-.background-video {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  z-index: -1;
-}
 
-/* Video Container */
-.video-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: -1;
-}
 
 .routes-container {
   text-align: center;

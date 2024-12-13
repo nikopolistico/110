@@ -1,56 +1,69 @@
 <script setup>
+import { ref } from 'vue'
 import { useDisplay } from 'vuetify'
 
 const { mobile } = useDisplay()
+const drawer = ref(false)
+const zoomedImage = ref(null)
+const showModal = ref(false)
+
+const openModal = (image) => {
+  zoomedImage.value = image
+  showModal.value = true
+}
+
+const closeModal = () => {
+  zoomedImage.value = null // Reset image when closing
+  showModal.value = false
+}
 </script>
 <template>
   <v-app>
-    <!-- Background Video -->
-    <div class="video-container">
+  <!-- Background Video -->
+  <div class="video-container">
       <video autoplay muted loop class="background-video">
         <source src="/public/images/home.mp4" type="video/mp4" />
       </video>
     </div>
+
+    <!-- Header Section -->
     <v-app-bar app flat class="transparent-navbar">
       <v-container class="d-flex align-center">
         <!-- Logo -->
-        <v-app-bar-title class="text-h5 font-weight-bold white-text-custom">
-          Easy Commute
-        </v-app-bar-title>
+        <v-app-bar-title class="logo"> Easy Commute </v-app-bar-title>
 
-        <!-- Spacer -->
+        <!-- Navigation -->
         <v-spacer></v-spacer>
-
-        <!-- Desktop Navigation -->
-        <nav v-if="!mobile" class="desktop-nav">
+        <nav v-if="!mobile">
           <router-link to="/home" class="nav-link">Home</router-link>
           <router-link to="#" class="nav-link">Ride</router-link>
           <router-link to="/fare" class="nav-link">Fare</router-link>
           <router-link to="/contact" class="nav-link">Contact Us</router-link>
           <router-link to="/profile" class="nav-link">Profile</router-link>
         </nav>
-
-        <!-- Mobile Menu Icon -->
-        <v-btn icon v-else @click="drawer = !drawer">
+        <v-btn icon v-if="mobile" @click="drawer = !drawer">
           <v-icon color="white">mdi-menu</v-icon>
         </v-btn>
       </v-container>
     </v-app-bar>
 
-    <!-- Mobile Drawer -->
-    <v-navigation-drawer v-model="drawer" temporary>
+    <!-- Drawer for Mobile Navigation -->
+    <v-navigation-drawer v-model="drawer" temporary class="mobile-drawer">
       <v-list>
         <v-list-item>
-          <router-link to="#" class="nav-link">Home</router-link>
+          <router-link to="/home" class="nav-link">Home</router-link>
         </v-list-item>
         <v-list-item>
-          <router-link to="/complain" class="nav-link">Complain</router-link>
+          <router-link to="#" class="nav-link">Ride</router-link>
+        </v-list-item>
+        <v-list-item>
+          <router-link to="/fare" class="nav-link">Fare</router-link>
         </v-list-item>
         <v-list-item>
           <router-link to="/contact" class="nav-link">Contact Us</router-link>
         </v-list-item>
         <v-list-item>
-          <router-link to="#" class="nav-link">Profile</router-link>
+          <router-link to="/profile" class="nav-link">Profile</router-link>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
@@ -98,12 +111,14 @@ const { mobile } = useDisplay()
 
 .logo {
   font-size: 2em;
+  font-weight: bold;
   color: white;
   user-select: none;
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva,
     Verdana, sans-serif;
 }
 
+/* Navbar Styles */
 .transparent-navbar {
   background-color: transparent;
 }
@@ -118,10 +133,13 @@ const { mobile } = useDisplay()
     Verdana, sans-serif;
 }
 
+.nav-link:hover {
+  opacity: 0.8;
+}
+
 .white-text-custom {
   color: white !important;
 }
-
 .custom-btn {
   font-weight: bold; /* Adjust font weight for a bolder appearance */
   padding: 16px 24px; /* Increase padding for a 'heavier' feel */
@@ -153,4 +171,45 @@ const { mobile } = useDisplay()
   width: 60%;
 }
 
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+
+  /* Navigation drawer */
+  .v-navigation-drawer {
+    width: 250px;
+    background-color: black;
+  }
+
+  .v-list-item {
+    padding: 16px 0;
+  }
+
+  .v-list-item a {
+    font-size: 1.1rem;
+    padding: 8px 16px;
+    color: #007bb5;
+  }
+
+  .v-list-item a:hover {
+    color: #00bfff;
+  }
+}
+/* Adjustments for smaller screens */
+@media (max-width: 900px) {
+  .logo {
+    font-size: 1em;
+  }
+}
+
+@media (max-width: 600px) {
+  .logo {
+    font-size: 1em;
+  }
+}
+
+@media (max-width: 400px) {
+  .logo {
+    font-size: 1em;
+  }
+}
 </style>
