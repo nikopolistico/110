@@ -379,7 +379,6 @@ const isMobile = computed(() => xsOnly.value)
 import { supabase } from '../../supabaseClient'
 
 export default {
-  name: 'AuthComponent',
   data() {
     return {
       currentForm: 'login',
@@ -469,8 +468,8 @@ export default {
 
           const { error: insertError } = await supabase.from('users_info').insert([
             {
-              fullname: this.fullname,
               id: user_id,
+              fullname: this.fullname,
               email_address: this.email,
               phone_number: this.phone_number,
             },

@@ -1,8 +1,8 @@
 // supabaseClient.js
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://ovqxenrzncjffzdcwabk.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92cXhlbnJ6bmNqZmZ6ZGN3YWJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIwMDYxMzksImV4cCI6MjA0NzU4MjEzOX0.U5rmB58bb_Nk_PlXHvnSl55KkEiM6qsh4wNzA5yhamY'
+const supabaseUrl = 'https://abgsixxwevueabvuzpmo.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiZ3NpeHh3ZXZ1ZWFidnV6cG1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjkwNDMzNjAsImV4cCI6MjA0NDYxOTM2MH0.hKEFmryKFRvoSx8PBrbprJ2NDsIWOpkJLUEtBjJ5R9k'
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Success Notification
