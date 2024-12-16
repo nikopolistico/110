@@ -613,6 +613,41 @@ export default {
   /* Prevent the modal from exceeding the viewport height */
   overflow-y: auto;
   /* Add scroll if content exceeds height */
+<<<<<<< HEAD
+=======
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    height: 90%;
+    /* Adjust for smaller screens */
+  }
+}
+
+
+.movement-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.movement-icon i {
+  font-size: 24px;
+  color: green;
+  margin-right: 10px;
+}
+
+
+.close-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+>>>>>>> e4a817017933ca5ada48cae307d008498b2ffbc1
 }
 
 @media (max-width: 768px) {
