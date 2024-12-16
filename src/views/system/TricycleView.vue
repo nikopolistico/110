@@ -1,49 +1,67 @@
 <template>
-  <div>
+  <!-- Routes Container -->
+  <div class="video-container">
+    <video autoplay muted loop class="background-video">
+      <source src="/public/images/background.mp4" type="video/mp4" />
+    </video>
+  </div>
 
 
-    <!-- Routes Container -->
-    <div class="routes-container">
-      <h1>ROUTES FOR Tricycle</h1>
-      <div class="routes-grid">
-        <div
-          v-for="(route, index) in routes"
-          :key="index"
-          class="route-card group"
-        >
-          <button @click="goToRouteDetails(route)" class="route-button">
-            <div class="route-icon group-hover:bg-black">
-              <i class="mdi mdi-jeepney group-hover:text-white"></i>
-            </div>
-            <span>Route {{ route.id }}</span>
-          </button>
-        </div>
+  <div class="routes-container">
+    <h1>ROUTES FOR Tricycle</h1>
+    <div class="routes-grid">
+      <div v-for="(route, index) in routes" :key="index" class="route-card group">
+        <button @click="openRouteModal(route)" class="route-button">
+          <div class="route-icon group-hover:bg-black">
+            <i class="mdi mdi-jeepney group-hover:text-white"></i>
+          </div>
+          <span>Route {{ route.id }}</span>
+        </button>
       </div>
     </div>
-     <!-- Set Destination Button -->
-    <!-- Map Section -->
-    <div v-if="selectedRoute" class="map-container">
+  </div>
 
-      <button v-if="startPoint" @click="setDestination" class="set-destination-button">
-        Set Destination
-      </button>
-      <h2>Route {{ selectedRoute.id }} Barangays</h2>
-      <div id="map"></div>
+  <!-- Modal for Route Details -->
+  <div v-if="isModalOpen" class="modal-overlay" @click="closeModal">
+    <div class="modal-content" @click.stop>
+      <h2>{{ selectedRoute.id }} Route Details</h2>
+      <button class="close-btn" @click="closeModal">Close</button>
 
-      <!-- Barangay List -->
-      <div class="barangay-list">
-        <h3>Barangays in Route {{ selectedRoute.id }}:</h3>
-        <ul>
-          <li v-for="barangay in selectedRoute.barangays" :key="barangay.name">
+      <!-- Starting and Destination Barangays -->
+      <div class="barangay-selection">
+        <label for="start">Starting Barangay:</label>
+        <select v-model="startPoint" @change="updateRoute">
+          <option disabled value="">Select starting barangay</option>
+          <option v-for="barangay in selectedRoute.barangays" :key="barangay.name" :value="barangay">
             {{ barangay.name }}
-          </li>
-        </ul>
+          </option>
+        </select>
+
+        <label for="destination">Destination Barangay:</label>
+        <select v-model="endPoint" @change="updateRoute">
+          <option disabled value="">Select destination barangay</option>
+          <option v-for="barangay in filteredBarangays" :key="barangay.name" :value="barangay">
+            {{ barangay.name }}
+          </option>
+        </select>
       </div>
 
       <!-- Estimated Travel Time -->
       <div v-if="estimatedTime">
         <p>Estimated Travel Time: {{ estimatedTime }} minutes</p>
       </div>
+
+      <!-- Movement Icon -->
+      <div v-if="startPoint && endPoint" class="movement-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+        </svg>
+        <span>{{ startPoint.name }} → {{ endPoint.name }}</span>
+      </div>
+      <!-- Leaflet Map -->
+      <div id="map"></div>
     </div>
   </div>
 </template>
@@ -52,245 +70,482 @@
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine";
-
+import { supabase } from '../../supabaseClient'
 export default {
   data() {
     return {
       routes: [
-      {
-        id: "Green",
-        barangays: [
-        { name: "Holy Redeemer (Langihan)", lat: 8.9501, lng: 125.5302 },
-        { name: "Obrero (Slaughterhouse)", lat: 8.9603, lng: 125.5404 },
-        { name: "Doongan", lat: 8.9705, lng: 125.5506 },
-        { name: "Ambago", lat: 8.9807, lng: 125.5608 },
-        { name: "Babag", lat: 9.0001, lng: 125.5802 },
-        { name: "Bading", lat: 9.0101, lng: 125.5902 },
-        { name: "Agusan Pequeño", lat: 9.0201, lng: 125.6002 },
-        { name: "Pagatpatan", lat: 9.0301, lng: 125.6102 },
-        { name: "P. Rizal (St. Joseph Subd., Guingona Subd., and Sintos Subd.)", lat: 9.0401, lng: 125.6202 },
-        { name: "Villa Kananga", lat: 9.0501, lng: 125.6302 },
-        { name: "Imadejas", lat: 9.0601, lng: 125.6402 },
-        { name: "Bayanihan (Luz Village, Pareja and DAR Subd.)", lat: 9.0701, lng: 125.6502 },
-        { name: "Golden Ribbon", lat: 9.0801, lng: 125.6602 },
-        { name: "Maon", lat: 9.0901, lng: 125.6702 },
-        { name: "Pangabuggan", lat: 9.1001, lng: 125.6802 },
-        { name: "San Vicente (Mandacpan)", lat: 9.1101, lng: 125.6902 },
-        { name: "Bit-os", lat: 9.1201, lng: 125.7002 },
-        { name: "Baan Riverside", lat: 9.1301, lng: 125.7102 },
-        { name: "Mahogany", lat: 9.1401, lng: 125.7202 },
-        { name: "Buhangin", lat: 9.1501, lng: 125.7302 },
-        { name: "Baan Km.3 Proper", lat: 9.1601, lng: 125.7402 },
-        { name: "IRA Homes", lat: 9.1701, lng: 125.7502 },
-        { name: "Barangay Lemon Proper", lat: 9.1801, lng: 125.7602 },
-        { name: "Barangay Tiniwisan", lat: 9.1901, lng: 125.7702 },
-        { name: "Cabcabon", lat: 9.2001, lng: 125.7802 },
-        { name: "Bobon", lat: 9.2101, lng: 125.7902 },
-        { name: "Barangay Taligaman Proper", lat: 9.2201, lng: 125.8002 },
-        { name: "Taligaman High School", lat: 9.2301, lng: 125.8102 },
-        { name: "Barangay Basag", lat: 9.2401, lng: 125.8202 },
-        { name: "Purok 5 Basag (Katangkonggan)", lat: 9.2501, lng: 125.8302 },
-        { name: "Ampayon Public Market", lat: 9.2601, lng: 125.8402 },
-        { name: "Ampayon Proper", lat: 9.2701, lng: 125.8502 },
-        { name: "Liboon Subdivision", lat: 9.2801, lng: 125.8602 },
-        { name: "Caraga State University", lat: 9.2901, lng: 125.8702 },
-        { name: "Barangay Camayah", lat: 9.3001, lng: 125.8802 }
-      ]
-      },
-      {
-        id: "Red",
-        barangays: [
-        { name: "Holy Redeemer (Langihan)", lat: 8.9501, lng: 125.5302 },
-        { name: "Obrero (Slaughterhouse)", lat: 8.9603, lng: 125.5404 },
-        { name: "Doongan", lat: 8.9705, lng: 125.5506 },
-        { name: "Ambago", lat: 8.9807, lng: 125.5608 },
-        { name: "Babag", lat: 9.0001, lng: 125.5802 },
-        { name: "Bading", lat: 9.0101, lng: 125.5902 },
-        { name: "Agusan Pequeño", lat: 9.0201, lng: 125.6002 },
-        { name: "Pagatpatan", lat: 9.0301, lng: 125.6102 }
-      ]
+        {
+          id: "Red",
+          barangays: [
+            { name: "Holy Redeemer (Langihan)", lat: 8.9501, lng: 125.5302 },
+            { name: "Obrero (Slaughterhouse)", lat: 8.9603, lng: 125.5404 },
+            { name: "Doongan", lat: 8.9705, lng: 125.5506 },
+            { name: "Ambago", lat: 8.9807, lng: 125.5608 },
+            { name: "Babag", lat: 9.0001, lng: 125.5802 },
+            { name: "Bading", lat: 9.0101, lng: 125.5902 },
+            { name: "Agusan Pequeño", lat: 9.0201, lng: 125.6002 },
+            { name: "Pagatpatan", lat: 9.0301, lng: 125.6102 },
+          ],
         },
         {
-        id: "yellow",
-        barangays: [
-        { name: "Holy Redeemer (Langihan)", lat: 8.9501, lng: 125.5302 },
-        { name: "Obrero (Slaughterhouse)", lat: 8.9603, lng: 125.5404 },
-        { name: "Doongan", lat: 8.9705, lng: 125.5506 },
-        { name: "Ambago", lat: 8.9807, lng: 125.5608 },
-        { name: "Babag", lat: 9.0001, lng: 125.5802 },
-        { name: "Bading", lat: 9.0101, lng: 125.5902 },
-        { name: "Agusan Pequeño", lat: 9.0201, lng: 125.6002 },
-        { name: "Pagatpatan", lat: 9.0301, lng: 125.6102 },
-        { name: "P. Rizal (St. Joseph Subd., Guingona Subd., and Sintos Subd.)", lat: 9.0401, lng: 125.6202 },
-        { name: "Villa Kananga", lat: 9.0501, lng: 125.6302 },
-        { name: "Imadejas", lat: 9.0601, lng: 125.6402 },
-        { name: "Bayanihan (Luz Village, Pareja and DAR Subd.)", lat: 9.0701, lng: 125.6502 },
-        { name: "Golden Ribbon", lat: 9.0801, lng: 125.6602 },
-        { name: "Maon", lat: 9.0901, lng: 125.6702 },
-        { name: "Pangabuggan", lat: 9.1001, lng: 125.6802 },
-        { name: "San Vicente (Mandacpan)", lat: 9.1101, lng: 125.6902 },
-        { name: "Bit-os", lat: 9.1201, lng: 125.7002 }
-      ]
+          id: "White",
+          barangays: [
+            { name: "Junction Highway to Paradise Village, Balanghai Shrine and Bliss", lat: 8.9501, lng: 125.5302 },
+            { name: "Junction Highway (Km.6) to Malalag", lat: 8.9603, lng: 125.5404 },
+            { name: "Junction Highway (Bancasi) to Pinamanculan and NIA", lat: 8.9705, lng: 125.5506 },
+            { name: "Junction Highway to Chinese Cemetery and City Cemetery", lat: 8.9807, lng: 125.5608 },
+            { name: "Junction Highway to Barangay Dumalagan Proper", lat: 9.0001, lng: 125.5802 },
+          ],
         },
         {
-        id: "white",
-        barangays: [
-        { name: "Junction Highway to Paradise Village, Balanghai Shrine and Bliss", lat: 8.9501, lng: 125.5302 },
-        { name: "Junction Highway (Km.6) to Malalag", lat: 8.9603, lng: 125.5404 },
-        { name: "Junction Highway (Bancasi) to Pinamanculan and NIA", lat: 8.9705, lng: 125.5506 },
-        { name: "Junction Highway to Chinese Cemetery and City Cemetery", lat: 8.9807, lng: 125.5608 },
-        { name: "Junction Highway to Barangay Dumalagan Proper", lat: 9.0001, lng: 125.5802 }
-      ]
+          id: "yellow",
+          barangays: [
+            { name: "Holy Redeemer (Langihan)", lat: 8.9501, lng: 125.5302 },
+            { name: "Obrero (Slaughterhouse)", lat: 8.9603, lng: 125.5404 },
+            { name: "Doongan", lat: 8.9705, lng: 125.5506 },
+            { name: "Ambago", lat: 8.9807, lng: 125.5608 },
+            { name: "Babag", lat: 9.0001, lng: 125.5802 },
+            { name: "Bading", lat: 9.0101, lng: 125.5902 },
+            { name: "Agusan Pequeño", lat: 9.0201, lng: 125.6002 },
+            { name: "Pagatpatan", lat: 9.0301, lng: 125.6102 },
+            { name: "P. Rizal (St. Joseph Subd., Guingona Subd., and Sintos Subd.)", lat: 9.0401, lng: 125.6202 },
+            { name: "Villa Kananga", lat: 9.0501, lng: 125.6302 },
+            { name: "Imadejas", lat: 9.0601, lng: 125.6402 },
+            { name: "Bayanihan (Luz Village, Pareja and DAR Subd.)", lat: 9.0701, lng: 125.6502 },
+            { name: "Golden Ribbon", lat: 9.0801, lng: 125.6602 },
+            { name: "Maon", lat: 9.0901, lng: 125.6702 },
+            { name: "Pangabuggan", lat: 9.1001, lng: 125.6802 },
+            { name: "San Vicente (Mandacpan)", lat: 9.1101, lng: 125.6902 },
+            { name: "Bit-os", lat: 9.1201, lng: 125.7002 }
+          ]
+        },
+        {
+          id: "Green",
+          barangays: [
+            { name: "Holy Redeemer (Langihan)", lat: 8.9501, lng: 125.5302 },
+            { name: "Obrero (Slaughterhouse)", lat: 8.9603, lng: 125.5404 },
+            { name: "Doongan", lat: 8.9705, lng: 125.5506 },
+            { name: "Ambago", lat: 8.9807, lng: 125.5608 },
+            { name: "Babag", lat: 9.0001, lng: 125.5802 },
+            { name: "Bading", lat: 9.0101, lng: 125.5902 },
+            { name: "Agusan Pequeño", lat: 9.0201, lng: 125.6002 },
+            { name: "Pagatpatan", lat: 9.0301, lng: 125.6102 },
+            { name: "P. Rizal (St. Joseph Subd., Guingona Subd., and Sintos Subd.)", lat: 9.0401, lng: 125.6202 },
+            { name: "Villa Kananga", lat: 9.0501, lng: 125.6302 },
+            { name: "Imadejas", lat: 9.0601, lng: 125.6402 },
+            { name: "Bayanihan (Luz Village, Pareja and DAR Subd.)", lat: 9.0701, lng: 125.6502 },
+            { name: "Golden Ribbon", lat: 9.0801, lng: 125.6602 },
+            { name: "Maon", lat: 9.0901, lng: 125.6702 },
+            { name: "Pangabuggan", lat: 9.1001, lng: 125.6802 },
+            { name: "San Vicente (Mandacpan)", lat: 9.1101, lng: 125.6902 },
+            { name: "Bit-os", lat: 9.1201, lng: 125.7002 },
+            { name: "Baan Riverside", lat: 9.1301, lng: 125.7102 },
+            { name: "Mahogany", lat: 9.1401, lng: 125.7202 },
+            { name: "Buhangin", lat: 9.1501, lng: 125.7302 },
+            { name: "Baan Km.3 Proper", lat: 9.1601, lng: 125.7402 },
+            { name: "IRA Homes", lat: 9.1701, lng: 125.7502 },
+            { name: "Barangay Lemon Proper", lat: 9.1801, lng: 125.7602 },
+            { name: "Barangay Tiniwisan", lat: 9.1901, lng: 125.7702 },
+            { name: "Cabcabon", lat: 9.2001, lng: 125.7802 },
+            { name: "Bobon", lat: 9.2101, lng: 125.7902 },
+            { name: "Barangay Taligaman Proper", lat: 9.2201, lng: 125.8002 },
+            { name: "Taligaman High School", lat: 9.2301, lng: 125.8102 },
+            { name: "Barangay Basag", lat: 9.2401, lng: 125.8202 },
+            { name: "Purok 5 Basag (Katangkonggan)", lat: 9.2501, lng: 125.8302 },
+            { name: "Ampayon Public Market", lat: 9.2601, lng: 125.8402 },
+            { name: "Ampayon Proper", lat: 9.2701, lng: 125.8502 },
+            { name: "Liboon Subdivision", lat: 9.2801, lng: 125.8602 },
+            { name: "Caraga State University", lat: 9.2901, lng: 125.8702 },
+            { name: "Barangay Camayah", lat: 9.3001, lng: 125.8802 }
+          ]
         },
       ],
+      markers: [],
+      iconMarker: null, // Store the moving icon marker reference
       selectedRoute: null,
-      map: null,
+      isModalOpen: false,
       startPoint: null,
       endPoint: null,
-      estimatedTime: null
+      estimatedTime: null,
+      map: null,
+      routingControl: null,
     };
   },
-  methods: {
-  goToRouteDetails(route) {
-    this.selectedRoute = route;
-    this.$nextTick(() => {
-      this.loadMap();
-    });
-  },
-  loadMap() {
-    if (!this.map) {
-      this.map = L.map("map").setView(
-        [this.selectedRoute.barangays[0].lat, this.selectedRoute.barangays[0].lng],
-        13
-      );
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.map);
-    } else {
-      this.map.setView(
-        [this.selectedRoute.barangays[0].lat, this.selectedRoute.barangays[0].lng],
-        13
-      );
-    }
-
-    // Clear any existing markers
-    this.map.eachLayer((layer) => {
-      if (layer instanceof L.Marker) {
-        this.map.removeLayer(layer);
+  computed: {
+    distance() {
+      if (this.startPoint && this.endPoint) {
+        const startLatLng = L.latLng(this.startPoint.lat, this.startPoint.lng);
+        const endLatLng = L.latLng(this.endPoint.lat, this.endPoint.lng);
+        return startLatLng.distanceTo(endLatLng); // Distance in meters
       }
-    });
-
-    // Add markers for each barangay in the selected route
-    this.selectedRoute.barangays.forEach((barangay) => {
-      L.marker([barangay.lat, barangay.lng])
-        .addTo(this.map)
-        .bindPopup(`${barangay.name}`)
-        .on("click", () => this.setStartPoint(barangay));
-    });
+      return 0;
+    },
+    estimatedTravelTime() {
+      const distanceInMeters = this.distance;
+      if (distanceInMeters > 0) {
+        const averageSpeed = 20 * 1000 / 3600; // Speed in meters per second (20 km/h)
+        const timeInSeconds = distanceInMeters / averageSpeed; // Time in seconds
+        return Math.round(timeInSeconds / 60); // Convert seconds to minutes
+      }
+      return 0;
+    },
+    filteredBarangays() {
+      if (!this.startPoint) {
+        return this.selectedRoute?.barangays || [];
+      }
+      return this.selectedRoute.barangays.filter(
+        (barangay) => barangay.name !== this.startPoint.name
+      );
+    },
   },
-  setStartPoint(barangay) {
-    if (!this.startPoint) {
-      // Set the start point if it hasn't been set
-      this.startPoint = barangay;
-      alert(`Start Point Set: ${barangay.name}`);
-    }
-  },
-  calculateTravelTime() {
-    if (this.startPoint && this.endPoint) {
-      // Calculate the distance between start and end points in meters
-      const startLatLng = L.latLng(this.startPoint.lat, this.startPoint.lng);
-      const endLatLng = L.latLng(this.endPoint.lat, this.endPoint.lng);
-      const distance = startLatLng.distanceTo(endLatLng); // Distance in meters
+  methods: {
+    openRouteModal(route) {
+      this.selectedRoute = route;
+      this.isModalOpen = true;
+      this.startPoint = null;
+      this.endPoint = null;
+      this.estimatedTime = null;
 
-      // Define the average speed (e.g., 20 km/h)
-      const averageSpeed = 20; // km/h
-      const distanceInKm = distance / 1000; // Convert meters to kilometers
-      const timeInHours = distanceInKm / averageSpeed; // Time in hours
-      const timeInMinutes = timeInHours * 60; // Convert time to minutes
+      // Wait for the modal to render before initializing the map
+      this.$nextTick(() => {
+        this.initMap();
+      });
+    },
+    closeModal() {
+      this.isModalOpen = false;
 
-      // Update the estimated time
-      this.estimatedTime = Math.round(timeInMinutes);
-    }
-  },
-  setDestination() {
-    // Allow the user to click a barangay to set as the destination
-    this.map.on("click", (e) => {
-      const lat = e.latlng.lat;
-      const lng = e.latlng.lng;
-      const destination = { lat, lng };
+      // Clean up the map and routing control when the modal is closed
+      if (this.map) {
+        this.map.off();
+        this.map.remove();
+        this.map = null;
+        this.routingControl = null;
+      }
+    },
+    initMap() {
+      if (this.map) {
+        // If map already exists, reset it
+        this.map.off();
+        this.map.remove();
+      }
 
-      // Set the destination and update the map
-      this.endPoint = destination;
-      this.displayRoute();
-      this.calculateTravelTime();  // Automatically calculate the travel time when destination is set
-    });
-  },
-  displayRoute() {
-    if (this.startPoint && this.endPoint) {
-      // Use Leaflet Routing Machine to draw the route
-      const routeControl = L.Routing.control({
-        waypoints: [
-          L.latLng(this.startPoint.lat, this.startPoint.lng),
-          L.latLng(this.endPoint.lat, this.endPoint.lng),
-        ],
+      // Initialize the map
+      this.map = L.map("map").setView([8.9501, 125.5302], 12);
+
+      // Add a tile layer
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '© OpenStreetMap contributors',
       }).addTo(this.map);
+
+      // If startPoint and endPoint are already selected, add the routing
+      if (this.startPoint && this.endPoint) {
+        this.updateRoute();
+      }
+    },
+    updateRoute() {
+      if (this.startPoint && this.endPoint && this.startPoint.name === this.endPoint.name) {
+        alert("Start point and End point cannot be the same!");
+        this.endPoint = null; // Reset end point if they are the same
+        return;
+      }
+
+      // Remove the old route and markers before adding the new ones
+      this.clearRouteAndMarkers();
+      // Now proceed to display the new route
+      this.routeDisplay();
+      this.estimatedTime = this.estimatedTravelTime;
+    },
+
+    clearRouteAndMarkers() {
+      // Remove existing route if any
+      if (this.routingControl) {
+        this.map.removeControl(this.routingControl);
+        this.routingControl = null;
+      }
+
+      // Remove existing markers
+      this.markers.forEach(marker => marker.remove());
+      this.markers = [];
+
+      // Remove animated icon if it exists
+      if (this.iconMarker) {
+        this.map.removeLayer(this.iconMarker);
+        this.iconMarker = null;
+      }
+    },
+
+    updateRoute() {
+      if (this.startPoint && this.endPoint && this.startPoint.name === this.endPoint.name) {
+        alert("Start point and End point cannot be the same!");
+        this.endPoint = null; // Reset end point if they are the same
+        return;
+      }
+
+      // Clear existing route and markers
+      this.clearRouteAndMarkers();
+
+      // Proceed to display the new route
+      this.routeDisplay();
+      this.saveRouteData();
+    },
+
+    routeDisplay() {
+      if (this.startPoint && this.endPoint) {
+        const startLatLng = L.latLng(this.startPoint.lat, this.startPoint.lng);
+        const endLatLng = L.latLng(this.endPoint.lat, this.endPoint.lng);
+
+        // Create the route control with the correct start and end lat/lng
+        this.routingControl = L.Routing.control({
+          waypoints: [startLatLng, endLatLng],
+          routeWhileDragging: true,
+          showInstructions: false,
+          summaryTemplate: () => "",
+          instructionTemplate: () => "",
+          controls: { instructions: false },
+          lineOptions: { styles: [{ color: 'red', weight: 4 }] },
+        }).addTo(this.map);
+
+        // Add markers for start and end points
+        this.addMarkerWithName(this.startPoint);
+        this.addMarkerWithName(this.endPoint);
+
+        // Listen for the route to be calculated and animate the icon
+        this.routingControl.on('routesfound', (e) => {
+          const route = e.routes[0];
+          const { coordinates } = route;
+          this.animateIcon(coordinates);
+        });
+      }
+    },
+
+    addMarkerWithName(point) {
+      const marker = L.marker([point.lat, point.lng]).addTo(this.map);
+      marker.bindPopup(`<b>${point.name}</b><br>Lat: ${point.lat}<br>Lng: ${point.lng}`).openPopup();
+      this.markers.push(marker);
+    },
+
+    animateIcon(coordinates) {
+      if (!coordinates || coordinates.length === 0) {
+        console.error('No coordinates available for animation.');
+        return;
+      }
+
+      console.log('Animating icon with coordinates:', coordinates);
+
+      const svgIcon = L.divIcon({
+        html: `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+        </svg>`,
+        className: "custom-moving-icon",
+        iconSize: [30, 30],
+      });
+
+      // Reuse the existing icon marker if it exists
+      if (this.iconMarker) {
+        this.iconMarker.setLatLng([coordinates[0].lat, coordinates[0].lng]);
+      } else {
+        this.iconMarker = L.marker([coordinates[0].lat, coordinates[0].lng], { icon: svgIcon }).addTo(this.map);
+      }
+
+      let i = 0;
+      const moveMarker = () => {
+        if (i < coordinates.length - 1) {
+          i++;
+          this.iconMarker.setLatLng([coordinates[i].lat, coordinates[i].lng]);
+          setTimeout(moveMarker, 50); // Adjust speed (50ms per step)
+        }
+      };
+
+      moveMarker();
+    },
+    async saveRouteData() {
+      try {
+        // Get the authenticated user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError) {
+          console.error("Error retrieving user:", userError.message);
+          return;
+        }
+
+        if (!user || !user.id) {
+          console.error("User ID is missing, cannot save route data.");
+          return;
+        }
+
+        const userId = user.id; // Use the authenticated user's ID (UUID)
+
+
+        if (!this.startPoint || !this.startPoint.name) {
+          console.error("Start point is not set or missing the name property.");
+          return;
+        }
+
+        if (!this.endPoint || !this.endPoint.name) {
+          console.error("End point is not set or missing the name property.");
+          return;
+        }
+        // Now, you need to fetch the user details from `users_info` table using the user ID
+        const { data: userInfo, error: userInfoError } = await supabase
+          .from("users_info")
+          .select("id")  // Adjust this to match the fields you need from `users_info`
+          .eq("id", userId)
+          .single();  // Fetch only one record
+
+        if (userInfoError) {
+          console.error("Error retrieving user info:", userInfoError.message);
+          return;
+        }
+
+        if (!userInfo) {
+          console.error("No user info found for the logged-in user.");
+          return;
+        }
+
+        // If we have user info, insert the data into the `routes` table
+        const { data, error } = await supabase
+          .from("routes")
+          .insert([
+            {
+              user_id: userInfo.id, // Use the user_id from `users_info` table
+              start_location: this.startPoint.name,
+              end_location: this.endPoint.name,
+            },
+          ]);
+
+        if (error) {
+          console.error("Error saving route data:", error.message);
+        } else {
+          console.log("Route data saved:", data);
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+      }
     }
   }
-},
 };
 </script>
 
-<style>
+<style scoped>
+@import "leaflet/dist/leaflet.css";
 @import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 
+.background-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -1;
+  /* Ensure the video stays in the background */
+}
 
+/* Video Container */
+.video-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.custom-moving-icon {
+  width: 30px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+}
+
+.size-6 {
+  width: 24px;
+  height: 24px;
+  stroke: #000;
+  /* Black color */
+}
+
+
+.moving-icon i {
+  font-size: 24px;
+  color: red;
+  /* Change the color of the icon */
+}
 
 .routes-container {
+  position: relative;
+  /* Position the content above the video */
   text-align: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  /* Semi-transparent background for readability */
+  color: #fff;
   padding: 20px;
 }
 
 .routes-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 1 row, 2 columns */
+  grid-template-columns: repeat(2, 1fr);
+  /* Force 2 columns */
   gap: 20px;
 }
 
 .route-card {
-  background-color: rgba(26, 26, 26, 0.7);
+  background-color: #1a1a1a;
   padding: 20px;
   border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s;
+}
+
+.route-card:hover {
+  transform: scale(1.05);
+  background-color: #00bfff;
+  color: #000;
 }
 
 .route-button {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  padding: 10px;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
   border: none;
-  background-color: transparent;
-  color: #fff;
-  font-size: 1.2rem;
+  background: none;
+  cursor: pointer;
+  transition: color 0.3s;
 }
 
 .route-icon {
-  margin-right: 8px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #00bfff;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  color: #000;
+  font-size: 24px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-.group:hover .route-icon {
-  background-color: black;
-  color: white;
+.route-icon i {
+  font-size: 24px;
 }
 
-.set-destination-button {
-  margin-top: 10px;
-  padding: 10px 20px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  cursor: pointer;
+.route-card:hover .route-icon {
+  background-color: #000;
+  color: #fff;
 }
 
-.set-destination-button:hover {
-  background-color: #45a049;
+.route-card span {
+  font-size: 18px;
 }
 
 #map {
@@ -299,23 +554,96 @@ export default {
   margin: 20px auto;
 }
 
-.barangay-list {
-  padding: 20px;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: white;
-  border-radius: 10px;
+.barangay-selection {
+  padding: 5px;
+  background-color: rgba(254, 254, 254, 0.93);
+  color: rgb(17, 17, 17);
+  border-radius: 8px;
+  margin: 10px auto;
+  width: 50%;
+  border-color: black;
 }
 
-.barangay-list h3 {
+.barangay-selection label {
+  display: block;
+  margin-bottom: 3px;
+  font-weight: bold;
+  font-size: 14px;
+  color: rgb(17, 17, 17);
+}
+
+.barangay-selection select {
+  width: 100%;
+  padding: 5px;
   margin-bottom: 10px;
+  border-radius: 4px;
+  border: 2px solid black;
+  /* Set the border color to black */
+  background-color: white;
+  color: black;
+  font-size: 14px;
 }
 
-.barangay-list ul {
-  list-style-type: none;
-  padding: 0;
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.barangay-list li {
-  margin-bottom: 5px;
+.modal-content {
+  background-color: white;
+  padding: 10px;
+  border-radius: 10px;
+  width: 100%;
+  /* Ensure full width */
+  max-width: 800px;
+  /* Prevent modal from becoming too wide */
+  box-sizing: border-box;
+  /* Include padding in width */
+  height: 100%;
+  /* Set the height to 80% of the viewport */
+  max-height: 90vh;
+  /* Prevent the modal from exceeding the viewport height */
+  overflow-y: auto;
+  /* Add scroll if content exceeds height */
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    height: 90%;
+    /* Adjust for smaller screens */
+  }
+}
+
+
+.movement-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.movement-icon i {
+  font-size: 24px;
+  color: green;
+  margin-right: 10px;
+}
+
+
+.close-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
 }
 </style>
