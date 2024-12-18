@@ -12,7 +12,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.46.1",
+    "axios": "^1.7.9",
     "leaflet": "^1.9.4",
+    "leaflet-control-geocoder": "^3.0.0",
+    "leaflet-geosearch": "^4.0.0",
     "leaflet-routing-machine": "^3.2.12",
     "mapbox-gl": "^3.8.0",
     "pinia": "^2.2.6",

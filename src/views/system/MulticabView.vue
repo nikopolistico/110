@@ -7,7 +7,7 @@
   </div>
 
   <div class="routes-container">
-    <h1>ROUTES FOR MULTICAB</h1>
+    <h1>ROUTES FOR Tricycle</h1>
     <div class="routes-grid">
       <div v-for="(route, index) in routes" :key="index" class="route-card group">
         <button @click="openRouteModal(route)" class="route-button">
@@ -31,7 +31,7 @@
         <label for="start">Starting Barangay:</label>
         <select v-model="startPoint" @change="updateRoute">
           <option disabled value="">Select starting barangay</option>
-          <option v-for="barangay in selectedRoute.barangays" :key="barangay.name" :value="barangay">
+          <option v-for="barangay in selectedRoute.barangays" :key="barangay.name" :value="barangay.name">
             {{ barangay.name }}
           </option>
         </select>
@@ -39,7 +39,7 @@
         <label for="destination">Destination Barangay:</label>
         <select v-model="endPoint" @change="updateRoute">
           <option disabled value="">Select destination barangay</option>
-          <option v-for="barangay in filteredBarangays" :key="barangay.name" :value="barangay">
+          <option v-for="barangay in filteredBarangays" :key="barangay.name" :value="barangay.name">
             {{ barangay.name }}
           </option>
         </select>
@@ -57,19 +57,20 @@
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
         </svg>
-        <span>{{ startPoint.name }} → {{ endPoint.name }}</span>
+        <span>{{ startPoint }} → {{ endPoint }}</span>
       </div>
+
       <!-- Leaflet Map -->
       <div id="map"></div>
     </div>
   </div>
-
 </template>
 
 <script>
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from '../../supabaseClient'
+import axios from 'axios';
 
 export default {
   data() {
@@ -78,235 +79,228 @@ export default {
         {
           id: "1",
           barangays: [
-            { name: "Bangcasi - Dumalagan Crossing", lat: 8.9501, lng: 125.5302 },
-            { name: "J.C Aquino Avenue", lat: 8.9603, lng: 125.5404 },
-            { name: "A.D. Curato St. (BCES)", lat: 8.9705, lng: 125.5506 },
-            { name: "Durano St.", lat: 8.9807, lng: 125.5608 },
-            { name: "Balik J.C Aquino Ave. (Jollibee Centro)", lat: 8.9909, lng: 125.5700 },
-            { name: "Balik Bancasi-Dumalagan Crossing", lat: 9.0001, lng: 125.5802 }
-          ]
+            { name: "Bangcasi - Dumalagan Crossing"},
+            { name: "J.C Aquino Avenue"},
+            { name: "A.D. Curato St. (BCES)"},
+            { name: "Durano St."},
+            { name: "Balik J.C Aquino Ave. (Jollibee Centro)"},
+            { name: "Balik Bancasi-Dumalagan Crossing"}
+          ],
+          city: "Butuan City",
         },
         {
           id: "2",
           barangays: [
-            { name: "Bangcasi - Dumalagan Crossing", lat: 8.9501, lng: 125.5302 },
-            { name: "J.C Aquino Avenue", lat: 8.9603, lng: 125.5404 },
-            { name: "North Montilla Blvd", lat: 8.9705, lng: 125.5506 },
-            { name: "T. Calo St.", lat: 8.9807, lng: 125.5608 },
-            { name: "Balik J.C Aquino Ave", lat: 9.0001, lng: 125.5802 },
-            { name: "Balik Bancasi-Dumalagan Crossing", lat: 9.0001, lng: 125.5802 }
-          ]
+            { name: "Bangcasi - Dumalagan Crossing"},
+            { name: "J.C Aquino Avenue"},
+            { name: "North Montilla Blvd"},
+            { name: "T. Calo St." },
+            { name: "Balik J.C Aquino Ave" },
+            { name: "Balik Bancasi-Dumalagan Crossing"}
+          ],
+          city: "Butuan City",
         },
         {
           id: "4",
           barangays: [
-            { name: "Bangcasi - Dumalagan Crossing", lat: 8.9501, lng: 125.5302 },
-            { name: "J.C Aquino Avenue", lat: 8.9603, lng: 125.5404 },
-            { name: "A. D. Curato St. (BCPO)", lat: 8.9705, lng: 125.5506 },
-            { name: "T. Sanchez St. (SSS)", lat: 8.9807, lng: 125.5608 },
-            { name: "M. Calo St.", lat: 9.0001, lng: 125.5802 },
-            { name: "G. Flores St.", lat: 9.0001, lng: 125.5802 },
-            { name: "Rosales St. (SJIT)", lat: 9.0001, lng: 125.5802 },
-            { name: "North Montilla Blvd. (Obrero Elem. School)", lat: 9.0001, lng: 125.5802 },
-            { name: "Taboan", lat: 9.0001, lng: 125.5802 },
-            { name: "Holy Redeemer", lat: 9.0001, lng: 125.5802 },
-            { name: "City Hall", lat: 9.0001, lng: 125.5802 },
-            { name: "Gaisano", lat: 9.0001, lng: 125.5802 },
-            { name: "balik J. C. Aquino (DBP)", lat: 9.0001, lng: 125.5802 },
-            { name: "balik Bancasi-Dumalagan Crossing", lat: 9.0001, lng: 125.5802 },
-          ]
+            { name: "Bangcasi - Dumalagan Crossing"},
+            { name: "J.C Aquino Avenue"},
+            { name: "A. D. Curato St. (BCPO)"},
+            { name: "T. Sanchez St. (SSS)"},
+            { name: "M. Calo St." },
+            { name: "G. Flores St." },
+            { name: "Rosales St. (SJIT)" },
+            { name: "North Montilla Blvd. (Obrero Elem. School)"},
+            { name: "Taboan" },
+            { name: "Holy Redeemer"},
+            { name: "City Hall" },
+            { name: "Gaisano" },
+            { name: "balik J. C. Aquino (DBP)" },
+            { name: "balik Bancasi-Dumalagan Crossing"},
+          ],
+          city: "Butuan City",
         },
         {
           id: "8",
           barangays: [
-            { name: "Sto. Niño Brgy. Hall", lat: 8.95, lng: 125.53 },
-            { name: "Los Angeles", lat: 8.96, lng: 125.54 },
-            { name: "Sumilihon", lat: 8.97, lng: 125.55 },
-            { name: "Taguibo", lat: 8.98, lng: 125.56 },
-            { name: "Ampayon Rotonda", lat: 8.99, lng: 125.57 },
-            { name: "Philippine Science High School", lat: 9.00, lng: 125.58 },
-            { name: "Tiniwisan Crossing", lat: 9.01, lng: 125.59 },
-            { name: "Baan Viaduct", lat: 9.02, lng: 125.60 },
-            { name: "J.C. Aquino Ave.", lat: 9.03, lng: 125.61 },
-            { name: "J. Rosales St. (DBP)", lat: 9.04, lng: 125.62 },
-            { name: "City Hall", lat: 9.05, lng: 125.63 },
-            { name: "J. Satorre St.", lat: 9.06, lng: 125.64 },
-            { name: "Ochoa St. (Masagana)", lat: 9.07, lng: 125.65 },
-            { name: "Salvador Calo St.", lat: 9.08, lng: 125.66 },
-            { name: "Langihan Public Market", lat: 9.09, lng: 125.67 },
-            { name: "Magsaysay St. (Puregold Langihan)", lat: 9.10, lng: 125.68 },
-            { name: "Andaya St.", lat: 9.11, lng: 125.69 },
-            { name: "North Montilla Blvd.", lat: 9.12, lng: 125.70 },
-            { name: "J.C. Aquino Ave. (Mcdo Downtown)", lat: 9.13, lng: 125.71 },
-            { name: "R. Calo St. (Dunkin Donut)", lat: 9.14, lng: 125.72 },
-            { name: "T. Sanchez St. (ANHS)", lat: 9.15, lng: 125.73 },
-            { name: "M. Calo St.", lat: 9.16, lng: 125.74 },
-            { name: "Foot of Bridge", lat: 9.17, lng: 125.75 },
-            { name: "Balik Baan Viaduct", lat: 9.18, lng: 125.76 },
-            { name: "Baan Km. 3", lat: 9.19, lng: 125.77 },
-            { name: "Tiniwisan Crossing", lat: 9.20, lng: 125.78 },
-            { name: "Philippine Science High School", lat: 9.21, lng: 125.79 },
-            { name: "Ampayon", lat: 9.22, lng: 125.80 },
-            { name: "Taguibo", lat: 9.23, lng: 125.81 },
-            { name: "Sumilihon", lat: 9.24, lng: 125.82 },
-            { name: "Los Angeles", lat: 9.25, lng: 125.83 },
-            { name: "Sto. Niño Brgy. Hall", lat: 9.26, lng: 125.84 }
-          ]
+            { name: "Sto. Niño Brgy. Hall"},
+            { name: "Los Angeles" },
+            { name: "Sumilihon"},
+            { name: "Taguibo"},
+            { name: "Ampayon Rotonda" },
+            { name: "Philippine Science High School"},
+            { name: "Tiniwisan Crossing" },
+            { name: "Baan Viaduct"},
+            { name: "J.C. Aquino Ave."},
+            { name: "J. Rosales St. (DBP)" },
+            { name: "City Hall"},
+            { name: "J. Satorre St."},
+            { name: "Ochoa St. (Masagana)"},
+            { name: "Salvador Calo St."},
+            { name: "Langihan Public Market"},
+            { name: "Magsaysay St. (Puregold Langihan)"},
+            { name: "Andaya St."},
+            { name: "North Montilla Blvd."},
+            { name: "J.C. Aquino Ave. (Mcdo Downtown)" },
+            { name: "R. Calo St. (Dunkin Donut)"},
+            { name: "T. Sanchez St. (ANHS)"},
+            { name: "M. Calo St."},
+            { name: "Foot of Bridge"},
+            { name: "Balik Baan Viaduct"},
+            { name: "Baan Km. 3"},
+            { name: "Tiniwisan Crossing"},
+            { name: "Philippine Science High School"},
+            { name: "Ampayon"},
+            { name: "Taguibo" },
+            { name: "Sumilihon"},
+            { name: "Los Angeles" },
+            { name: "Sto. Niño Brgy. Hall" }
+          ],
+          city: "Butuan City",
         },
         {
           id: "12",
           barangays: [
-            { name: "Amparo", lat: 9.27, lng: 125.85 },
-            { name: "Bit-os", lat: 9.28, lng: 125.86 },
-            { name: "Mandacpan Elem. School", lat: 9.29, lng: 125.87 },
-            { name: "San Vicente", lat: 9.30, lng: 125.88 },
-            { name: "Montilla Blvd.", lat: 9.31, lng: 125.89 },
-            { name: "Holy Redeemer", lat: 9.32, lng: 125.90 },
-            { name: "City Hall", lat: 9.33, lng: 125.91 },
-            { name: "BCSAT", lat: 9.34, lng: 125.92 },
-            { name: "Gaisano", lat: 9.35, lng: 125.93 },
-            { name: "Montilla Blvd.", lat: 9.36, lng: 125.94 },
-            { name: "San Vicente", lat: 9.37, lng: 125.95 },
-            { name: "Mandacpan Elem. School", lat: 9.38, lng: 125.96 },
-            { name: "Bit-os", lat: 9.39, lng: 125.97 },
-            { name: "Amparo", lat: 9.40, lng: 125.98 }
-          ]
+            { name: "Amparo" },
+            { name: "Bit-os" },
+            { name: "Mandacpan Elem. School"},
+            { name: "San Vicente" },
+            { name: "Montilla Blvd." },
+            { name: "Holy Redeemer"},
+            { name: "City Hall" },
+            { name: "BCSAT" },
+            { name: "Gaisano" },
+            { name: "Montilla Blvd."},
+            { name: "San Vicente" },
+            { name: "Mandacpan Elem. School" },
+            { name: "Bit-os" },
+            { name: "Amparo" }
+          ],
+          city: "Butuan City",
         },
 
         {
           id: "13",
           barangays: [
-            { name: "Banza National High School", lat: 8.95, lng: 125.53 },
-            { name: "Brgy. Maug", lat: 8.96, lng: 125.54 },
-            { name: "Brgy. Mahogany", lat: 8.97, lng: 125.55 },
-            { name: "Baan Viaduct", lat: 8.98, lng: 125.56 },
-            { name: "M. Calo St.", lat: 8.99, lng: 125.57 },
-            { name: "G. Flores St.", lat: 9.00, lng: 125.58 },
-            { name: "Rosales St. (SJIT)", lat: 9.01, lng: 125.59 },
-            { name: "North Montilla Blvd.", lat: 9.02, lng: 125.60 },
-            { name: "Obrero Elem. School", lat: 9.03, lng: 125.61 },
-            { name: "Langihan Public Market", lat: 9.04, lng: 125.62 },
-            { name: "City Hall", lat: 9.05, lng: 125.63 },
-            { name: "J. Rosales St.", lat: 9.06, lng: 125.64 },
-            { name: "J. C. Aquino Ave. (DBP)", lat: 9.07, lng: 125.65 },
-            { name: "Baan Viaduct", lat: 9.08, lng: 125.66 },
-            { name: "Brgy. Mahogany", lat: 9.09, lng: 125.67 },
-            { name: "Brgy. Maug", lat: 9.10, lng: 125.68 },
-            { name: "Brgy. Banza", lat: 9.11, lng: 125.69 }
-          ]
+            { name: "Banza National High School"},
+            { name: "Brgy. Maug" },
+            { name: "Brgy. Mahogany"},
+            { name: "Baan Viaduct" },
+            { name: "M. Calo St."  },
+            { name: "G. Flores St." },
+            { name: "Rosales St. (SJIT)"  },
+            { name: "North Montilla Blvd." },
+            { name: "Obrero Elem. School" },
+            { name: "Langihan Public Market", },
+            { name: "City Hall" },
+            { name: "J. Rosales St."},
+            { name: "J. C. Aquino Ave. (DBP)" },
+            { name: "Baan Viaduct" },
+            { name: "Brgy. Mahogany" },
+            { name: "Brgy. Maug" },
+            { name: "Brgy. Banza" }
+          ],
+          city: "Butuan City",
         },
 
         {
           id: "10",
           barangays: [
-            { name: "Bancasi-Dumalagan Crossing", lat: 8.95, lng: 125.53 },
-            { name: "J.C. Aquino Ave.", lat: 8.96, lng: 125.54 },
-            { name: "Baan Viaduct", lat: 8.97, lng: 125.55 },
-            { name: "Baan Km. 3", lat: 8.98, lng: 125.56 },
-            { name: "Tiniwisan Crossing", lat: 8.99, lng: 125.57 },
-            { name: "Philippine Science High School", lat: 9.00, lng: 125.58 },
-            { name: "Ampayon", lat: 9.01, lng: 125.59 },
-            { name: "Vice Versa", lat: 9.02, lng: 125.60 }
-          ]
-
+            { name: "Bancasi-Dumalagan Crossing" },
+            { name: "J.C. Aquino Ave."},
+            { name: "Baan Viaduct" },
+            { name: "Baan Km. 3"},
+            { name: "Tiniwisan Crossing"},
+            { name: "Philippine Science High School" },
+            { name: "Ampayon" },
+            { name: "Vice Versa"}
+          ],
+          city: "Butuan City",
         },
 
         {
           id: "7",
           barangays: [
-            { name: "De Oro Brgy. Hall", lat: 8.95, lng: 125.53 },
-            { name: "Taligaman Brgy. Hall", lat: 8.96, lng: 125.54 },
-            { name: "Antongalon Elem. School", lat: 8.97, lng: 125.55 },
-            { name: "LTFRB", lat: 8.98, lng: 125.56 },
-            { name: "Ampayon Rotonda", lat: 8.99, lng: 125.57 },
-            { name: "Caraga State University", lat: 9.00, lng: 125.58 },
-            { name: "Philippine Science High School", lat: 9.01, lng: 125.59 },
-            { name: "Tiniwisan Crossing", lat: 9.02, lng: 125.60 },
-            { name: "Butuan Medical Center", lat: 9.03, lng: 125.61 },
-            { name: "Filinvest (Hi-way)", lat: 9.04, lng: 125.62 },
-            { name: "Baan Viaduct", lat: 9.05, lng: 125.63 },
+            { name: "De Oro Brgy. Hall"},
+            { name: "Taligaman Brgy. Hall"},
+            { name: "Antongalon Elem. School"},
+            { name: "LTFRB"},
+            { name: "Ampayon Rotonda" },
+            { name: "Caraga State University"},
+            { name: "Philippine Science High School" },
+            { name: "Tiniwisan Crossing"},
+            { name: "Butuan Medical Center"},
+            { name: "Filinvest (Hi-way)"},
+            { name: "Baan Viaduct"},
 
             // Column 2
-            { name: "M. Calo St.", lat: 9.06, lng: 125.64 },
-            { name: "G. Flores St.", lat: 9.07, lng: 125.65 },
-            { name: "North Montilla Blvd.", lat: 9.08, lng: 125.66 },
-            { name: "Andaya St.", lat: 9.09, lng: 125.67 },
-            { name: "Langihan Public Market", lat: 9.10, lng: 125.68 },
-            { name: "City Hall", lat: 9.11, lng: 125.69 },
-            { name: "J. C. Aquino Ave. (DBP)", lat: 9.12, lng: 125.70 },
-            { name: "SM", lat: 9.13, lng: 125.71 },
-            { name: "R. Calo St. (Dunkin)", lat: 9.14, lng: 125.72 },
-            { name: "T. Sanchez St. (ANHS)", lat: 9.15, lng: 125.73 },
-            { name: "M. Calo St.", lat: 9.16, lng: 125.74 },
+            { name: "M. Calo St."},
+            { name: "G. Flores St."},
+            { name: "North Montilla Blvd."},
+            { name: "Andaya St." },
+            { name: "Langihan Public Market" },
+            { name: "City Hall"},
+            { name: "J. C. Aquino Ave. (DBP)"},
+            { name: "SM"},
+            { name: "R. Calo St. (Dunkin)"},
+            { name: "T. Sanchez St. (ANHS)"},
+            { name: "M. Calo St." },
 
             // Column 3
-            { name: "Foot of Bridge", lat: 9.17, lng: 125.75 },
-            { name: "Balik Baan Viaduct", lat: 9.18, lng: 125.76 },
-            { name: "Baan Km. 3", lat: 9.19, lng: 125.77 },
-            { name: "Philippine Science High School", lat: 9.20, lng: 125.78 },
-            { name: "Tiniwisan Crossing", lat: 9.21, lng: 125.79 },
-            { name: "Ampayon", lat: 9.22, lng: 125.80 },
-            { name: "Antongalon", lat: 9.23, lng: 125.81 },
-            { name: "Taligaman", lat: 9.24, lng: 125.82 },
-            { name: "De Oro Brgy. Hall", lat: 9.25, lng: 125.83 }
-          ]
+            { name: "Foot of Bridge"},
+            { name: "Balik Baan Viaduct"},
+            { name: "Baan Km. 3" },
+            { name: "Philippine Science High School"},
+            { name: "Tiniwisan Crossing" },
+            { name: "Ampayon"},
+            { name: "Antongalon"},
+            { name: "Taligaman" },
+            { name: "De Oro Brgy. Hall" }
+          ],
+          city: "Butuan City",
         },
 
         {
           id: "14",
           barangays: [
-            { name: "Ampayon", lat: 9.27, lng: 125.85 },
-            { name: "Tiniwisan", lat: 9.28, lng: 125.86 },
-            { name: "Alviola", lat: 9.29, lng: 125.87 },
-            { name: "Era (Crossing)", lat: 9.30, lng: 125.88 },
-            { name: "Lemon (Crossing)", lat: 9.31, lng: 125.89 },
-            { name: "Pigdaulan (Crossing)", lat: 9.32, lng: 125.90 },
-            { name: "Mahay (Crossing)", lat: 9.33, lng: 125.91 },
-            { name: "San Vicente (Crossing)", lat: 9.34, lng: 125.92 },
-            { name: "Montilla Boulevard", lat: 9.35, lng: 125.93 },
-            { name: "SM", lat: 9.36, lng: 125.94 },
-            { name: "Gaisano", lat: 9.37, lng: 125.95 },
-            { name: "Robinsons", lat: 9.38, lng: 125.96 }
-          ]
+            { name: "Ampayon"},
+            { name: "Tiniwisan" },
+            { name: "Alviola"},
+            { name: "Era (Crossing)"},
+            { name: "Lemon (Crossing)"},
+            { name: "Pigdaulan (Crossing)"},
+            { name: "Mahay (Crossing)"},
+            { name: "San Vicente (Crossing)"},
+            { name: "Montilla Boulevard"},
+            { name: "SM"},
+            { name: "Gaisano"},
+            { name: "Robinsons" }
+          ],
+          city: "Butuan City",
         },
 
       ],
-      markers: [],
-      iconMarker: null, // Store the moving icon marker reference
       selectedRoute: null,
       isModalOpen: false,
       startPoint: null,
       endPoint: null,
       estimatedTime: null,
       map: null,
-      routingControl: null,
+      movingIcon: null,
+      polyline: null,
     };
   },
   computed: {
-    distance() {
-      if (this.startPoint && this.endPoint) {
-        const startLatLng = L.latLng(this.startPoint.lat, this.startPoint.lng);
-        const endLatLng = L.latLng(this.endPoint.lat, this.endPoint.lng);
-        return startLatLng.distanceTo(endLatLng); // Distance in meters
-      }
-      return 0;
-    },
-    estimatedTravelTime() {
-      const distanceInMeters = this.distance;
-      if (distanceInMeters > 0) {
-        const averageSpeed = 20 * 1000 / 3600; // Speed in meters per second (20 km/h)
-        const timeInSeconds = distanceInMeters / averageSpeed; // Time in seconds
-        return Math.round(timeInSeconds / 60); // Convert seconds to minutes
-      }
-      return 0;
-    },
     filteredBarangays() {
       if (!this.startPoint) {
         return this.selectedRoute?.barangays || [];
       }
       return this.selectedRoute.barangays.filter(
-        (barangay) => barangay.name !== this.startPoint.name
+        (barangay) => barangay.name !== this.startPoint
       );
+    },
+    estimatedTravelTime() {
+      return this.startPoint && this.endPoint ? 15 : 0; // Mock estimated time in minutes
     },
   },
   methods: {
@@ -317,150 +311,159 @@ export default {
       this.endPoint = null;
       this.estimatedTime = null;
 
-      // Wait for the modal to render before initializing the map
       this.$nextTick(() => {
         this.initMap();
       });
     },
     closeModal() {
       this.isModalOpen = false;
-
-      // Remove map and routing control to prevent memory leaks
-      if (this.routingControl) {
-        this.map.removeControl(this.routingControl);
-        this.routingControl = null;
-      }
       if (this.map) {
+        this.map.off();
         this.map.remove();
         this.map = null;
       }
     },
     initMap() {
-      if (!this.map) {
-        this.map = L.map("map").setView([8.9501, 125.5302], 13);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors",
-        }).addTo(this.map);
-      } else {
-        this.map.setView([8.9501, 125.5302], 13); // Reset map position
-      }
-    },
-    updateRoute() {
-      if (this.startPoint && this.endPoint && this.startPoint.name === this.endPoint.name) {
-        alert("Start point and End point cannot be the same!");
-        this.endPoint = null; // Reset end point if they are the same
-        return;
-      }
+      let lat = 8.9501; // Default coordinates
+      let lng = 125.5302;
 
-      // Remove the old route and markers before adding the new ones
-      this.clearRouteAndMarkers();
+      this.map = L.map("map").setView([lat, lng], 12);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '© OpenStreetMap contributors',
+      }).addTo(this.map);
 
-      // Now proceed to display the new route
-      this.routeDisplay();
-    },
-
-    clearRouteAndMarkers() {
-      // Remove existing route if any
-      if (this.routingControl) {
-        this.map.removeControl(this.routingControl);
-        this.routingControl = null;
-      }
-
-      // Remove existing markers
-      this.markers.forEach(marker => marker.remove());
-      this.markers = [];
-
-      // Remove animated icon if it exists
-      if (this.iconMarker) {
-        this.map.removeLayer(this.iconMarker);
-        this.iconMarker = null;
-      }
-    },
-
-    updateRoute() {
-      if (this.startPoint && this.endPoint && this.startPoint.name === this.endPoint.name) {
-        alert("Start point and End point cannot be the same!");
-        this.endPoint = null; // Reset end point if they are the same
-        return;
-      }
-
-      // Clear existing route and markers
-      this.clearRouteAndMarkers();
-
-      // Proceed to display the new route
-      this.routeDisplay();
-      this.saveRouteData();
-    },
-
-    routeDisplay() {
       if (this.startPoint && this.endPoint) {
-        const startLatLng = L.latLng(this.startPoint.lat, this.startPoint.lng);
-        const endLatLng = L.latLng(this.endPoint.lat, this.endPoint.lng);
-
-        // Create the route control with the correct start and end lat/lng
-        this.routingControl = L.Routing.control({
-          waypoints: [startLatLng, endLatLng],
-          routeWhileDragging: true,
-          showInstructions: false,
-          summaryTemplate: () => "",
-          instructionTemplate: () => "",
-          controls: { instructions: false },
-          lineOptions: { styles: [{ color: 'red', weight: 4 }] },
-        }).addTo(this.map);
-
-        // Add markers for start and end points
-        this.addMarkerWithName(this.startPoint);
-        this.addMarkerWithName(this.endPoint);
-
-        // Listen for the route to be calculated and animate the icon
-        this.routingControl.on('routesfound', (e) => {
-          const route = e.routes[0];
-          const { coordinates } = route;
-          this.animateIcon(coordinates);
-        });
+        this.updateRoute();
       }
     },
-
-    addMarkerWithName(point) {
-      const marker = L.marker([point.lat, point.lng]).addTo(this.map);
-      marker.bindPopup(`<b>${point.name}</b><br>Lat: ${point.lat}<br>Lng: ${point.lng}`).openPopup();
-      this.markers.push(marker);
-    },
-
-    animateIcon(coordinates) {
-      if (!coordinates || coordinates.length === 0) {
-        console.error('No coordinates available for animation.');
+    async updateRoute() {
+      if (this.startPoint && this.endPoint && this.startPoint === this.endPoint) {
+        alert("Start point and End point cannot be the same!");
+        this.endPoint = null;
         return;
       }
 
-      console.log('Animating icon with coordinates:', coordinates);
+      this.clearRoute();
+      this.estimatedTime = this.estimatedTravelTime;
+      this.routeDisplay();
+    },
+    async routeDisplay() {
+      if (this.startPoint && this.endPoint) {
+        const startCoords = await this.getCoordinates(this.startPoint);
+        const endCoords = await this.getCoordinates(this.endPoint);
 
-      const svgIcon = L.divIcon({
-        html: `
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-        </svg>`,
-        className: "custom-moving-icon",
-        iconSize: [30, 30],
+        this.clearRoute();
+        this.map.setView([startCoords.lat, startCoords.lng], 12);
+
+        this.addMarkers(startCoords, endCoords);
+      }
+    },
+    async getCoordinates(address) {
+      try {
+        // Constructing dynamic address string
+        const addressString = `${address} ${this.selectedRoute.city}, Philippines`;
+
+        const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
+          params: {
+            q: addressString, // Dynamically built address with barangay, city, and province
+            format: 'json',
+            addressdetails: 1,
+          }
+        });
+
+        if (response.data && response.data.length > 0) {
+          const { lat, lon } = response.data[0];
+          return {
+            lat: parseFloat(lat),
+            lng: parseFloat(lon),
+          };
+        } else {
+          console.error("Location not found for:", addressString);
+          // Return default location if no location is found
+          return { lat: 8.9501, lng: 125.5302 }; // Default location (Butuan City)
+        }
+      } catch (error) {
+        console.error("Error fetching coordinates: ", error);
+        return { lat: 8.9501, lng: 125.5302 }; // Default location on error
+      }
+    },
+    addMarkers(startCoords, endCoords) {
+      // Add a marker for the start point
+      const startMarker = L.marker([startCoords.lat, startCoords.lng]).addTo(this.map);
+      startMarker.bindPopup(`<b>${this.startPoint}</b>`).openPopup();
+
+      // Add a red circle marker for the start point
+      const startCircle = L.circleMarker([startCoords.lat, startCoords.lng], {
+        color: 'red',
+        fillColor: 'red',
+        fillOpacity: 1,
+        radius: 10
+      }).addTo(this.map);
+      startCircle.bindPopup(`<b>${this.startPoint}</b>`).openPopup();
+
+      // Add a marker for the end point
+      const endMarker = L.marker([endCoords.lat, endCoords.lng]).addTo(this.map);
+      endMarker.bindPopup(`<b>${this.endPoint}</b>`).openPopup();
+
+      // Add line connecting start and end points
+      this.polyline = L.polyline([startCoords, endCoords], { color: 'blue' }).addTo(this.map);
+
+      // Add moving icon
+      this.moveIcon(startCoords, endCoords);
+    },
+    clearRoute() {
+      if (this.map) {
+        this.map.eachLayer((layer) => {
+          if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+            this.map.removeLayer(layer);
+          }
+        });
+        if (this.movingIcon) {
+          this.movingIcon.stop();
+        }
+      }
+    },
+    moveIcon(startCoords, endCoords) {
+      const icon = L.icon({
+        iconUrl: '/icon/tricycle.png', // Path to your icon
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
       });
 
-      // Reuse the existing icon marker if it exists
-      if (this.iconMarker) {
-        this.iconMarker.setLatLng([coordinates[0].lat, coordinates[0].lng]);
-      } else {
-        this.iconMarker = L.marker([coordinates[0].lat, coordinates[0].lng], { icon: svgIcon }).addTo(this.map);
-      }
+      this.movingIcon = L.marker([startCoords.lat, startCoords.lng], { icon }).addTo(this.map);
 
-      let i = 0;
-      const moveMarker = () => {
-        if (i < coordinates.length - 1) {
-          i++;
-          this.iconMarker.setLatLng([coordinates[i].lat, coordinates[i].lng]);
-          setTimeout(moveMarker, 50); // Adjust speed (50ms per step)
+      const latLngs = [startCoords, endCoords];
+      let startTime = null;
+      const duration = 5000; // Total time for the animation (in milliseconds)
+
+      // Function to ease the transition of the icon's movement
+      const ease = (t) => {
+        return t * t * (3 - 2 * t); // A common easing function (easeInOutQuad)
+      };
+
+      const move = (timestamp) => {
+        if (!startTime) startTime = timestamp; // Capture the start time
+        const elapsedTime = timestamp - startTime; // Time elapsed since the animation started
+        const progress = Math.min(elapsedTime / duration, 1); // Progress between 0 and 1
+
+        // Apply easing function to slow down the movement as the icon approaches the destination
+        const easedProgress = ease(progress);
+
+        const lat = startCoords.lat + (endCoords.lat - startCoords.lat) * easedProgress;
+        const lng = startCoords.lng + (endCoords.lng - startCoords.lng) * easedProgress;
+
+        this.movingIcon.setLatLng([lat, lng]);
+
+        if (progress < 1) {
+          requestAnimationFrame(move); // Continue the animation
+        } else {
+          // Once the destination is reached, stop the movement
+          this.movingIcon.setLatLng([endCoords.lat, endCoords.lng]);
         }
       };
 
-      moveMarker();
+      // Start the animation
+      requestAnimationFrame(move);
     },
     async saveRouteData() {
       try {

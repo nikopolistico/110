@@ -1,14 +1,20 @@
 <!doctype html>
 <html lang="">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="/public/LOGO (3).png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.0/mapbox-gl.css" rel="stylesheet">
-    <title>Easy Commute</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- Updated favicon path -->
+  <link rel="icon" href="/LOGO (3).png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Easy Commute</title>
+  <script src="https://cdn.gomaps.pro/gomappro.js?apikey=AlzaSyoYDMJFsVO7GAL51fBwrLSo2JffyCO3Ean&callback=initMap" async defer></script>
+  <!-- Ensure GoMapsPro script is loaded -->
+</head>
+
+<body>
+  <div id="app"></div>
+  <!-- Ensure Vue app is loaded correctly -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+
 </html>

@@ -1,11 +1,10 @@
 <template>
   <!-- Routes Container -->
-    <div class="video-container">
-      <video autoplay muted loop class="background-video">
-        <source src="/public/images/background.mp4" type="video/mp4" />
-      </video>
+  <div class="video-container">
+    <video autoplay muted loop class="background-video">
+      <source src="/public/images/background.mp4" type="video/mp4" />
+    </video>
   </div>
-
 
   <div class="routes-container">
     <h1>ROUTES FOR Tricycle</h1>
@@ -32,7 +31,7 @@
         <label for="start">Starting Barangay:</label>
         <select v-model="startPoint" @change="updateRoute">
           <option disabled value="">Select starting barangay</option>
-          <option v-for="barangay in selectedRoute.barangays" :key="barangay.name" :value="barangay">
+          <option v-for="barangay in selectedRoute.barangays" :key="barangay.name" :value="barangay.name">
             {{ barangay.name }}
           </option>
         </select>
@@ -40,7 +39,7 @@
         <label for="destination">Destination Barangay:</label>
         <select v-model="endPoint" @change="updateRoute">
           <option disabled value="">Select destination barangay</option>
-          <option v-for="barangay in filteredBarangays" :key="barangay.name" :value="barangay">
+          <option v-for="barangay in filteredBarangays" :key="barangay.name" :value="barangay.name">
             {{ barangay.name }}
           </option>
         </select>
@@ -58,8 +57,9 @@
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
         </svg>
-        <span>{{ startPoint.name }} → {{ endPoint.name }}</span>
+        <span>{{ startPoint }} → {{ endPoint }}</span>
       </div>
+
       <!-- Leaflet Map -->
       <div id="map"></div>
     </div>
@@ -70,6 +70,7 @@
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine";
+import axios from 'axios'; // Import Axios
 
 export default {
   data() {
@@ -78,88 +79,97 @@ export default {
         {
           id: "Red",
           barangays: [
-            { name: "Holy Redeemer (Langihan)", lat: 8.9501, lng: 125.5302 },
-            { name: "Obrero (Slaughterhouse)", lat: 8.9603, lng: 125.5404 },
-            { name: "Doongan", lat: 8.9705, lng: 125.5506 },
-            { name: "Ambago", lat: 8.9807, lng: 125.5608 },
-            { name: "Babag", lat: 9.0001, lng: 125.5802 },
-            { name: "Bading", lat: 9.0101, lng: 125.5902 },
-            { name: "Agusan Pequeño", lat: 9.0201, lng: 125.6002 },
-            { name: "Pagatpatan", lat: 9.0301, lng: 125.6102 },
+            { name: "Holy Redeemer" },
+            { name: "Obrero" },
+            { name: "Doongan" },
+            { name: "Ambago" },
+            { name: "Babag" },
+            { name: "Bading" },
+            { name: "Agusan Pequeño" },
+            { name: "Pagatpatan"},
           ],
+          city: "Butuan City",  // Add the city
         },
         {
           id: "White",
           barangays: [
-            { name: "Junction Highway to Paradise Village, Balanghai Shrine and Bliss", lat: 8.9501, lng: 125.5302 },
-            { name: "Junction Highway (Km.6) to Malalag", lat: 8.9603, lng: 125.5404 },
-            { name: "Junction Highway (Bancasi) to Pinamanculan and NIA", lat: 8.9705, lng: 125.5506 },
-            { name: "Junction Highway to Chinese Cemetery and City Cemetery", lat: 8.9807, lng: 125.5608 },
-            { name: "Junction Highway to Barangay Dumalagan Proper", lat: 9.0001, lng: 125.5802 },
+            { name: "Paradise Libertad" },
+            { name: "Paradise Village" },
+            { name: "Balangay Shrine" },
+            { name: "Bliss" },
+            { name: "Libertad" },
+            { name: "Bancasi" },
+            { name: "Pinamanculan" },
+            { name: "NIA" },
+            { name: "Chinese Cemetery" },
+            { name: "Dumalagan" },
           ],
+          city: "Butuan City",
         },
         {
           id: "yellow",
           barangays: [
-            { name: "Holy Redeemer (Langihan)", lat: 8.9501, lng: 125.5302 },
-            { name: "Obrero (Slaughterhouse)", lat: 8.9603, lng: 125.5404 },
-            { name: "Doongan", lat: 8.9705, lng: 125.5506 },
-            { name: "Ambago", lat: 8.9807, lng: 125.5608 },
-            { name: "Babag", lat: 9.0001, lng: 125.5802 },
-            { name: "Bading", lat: 9.0101, lng: 125.5902 },
-            { name: "Agusan Pequeño", lat: 9.0201, lng: 125.6002 },
-            { name: "Pagatpatan", lat: 9.0301, lng: 125.6102 },
-            { name: "P. Rizal (St. Joseph Subd., Guingona Subd., and Sintos Subd.)", lat: 9.0401, lng: 125.6202 },
-            { name: "Villa Kananga", lat: 9.0501, lng: 125.6302 },
-            { name: "Imadejas", lat: 9.0601, lng: 125.6402 },
-            { name: "Bayanihan (Luz Village, Pareja and DAR Subd.)", lat: 9.0701, lng: 125.6502 },
-            { name: "Golden Ribbon", lat: 9.0801, lng: 125.6602 },
-            { name: "Maon", lat: 9.0901, lng: 125.6702 },
-            { name: "Pangabuggan", lat: 9.1001, lng: 125.6802 },
-            { name: "San Vicente (Mandacpan)", lat: 9.1101, lng: 125.6902 },
-            { name: "Bit-os", lat: 9.1201, lng: 125.7002 }
-          ]
+            { name: "Holy Redeemer" },
+            { name: "Obrero" },
+            { name: "Doongan" },
+            { name: "Ambago" },
+            { name: "Babag" },
+            { name: "Bading" },
+            { name: "Agusan Pequeño" },
+            { name: "Pagatpatan" },
+            { name: "P. Rizal" },
+            { name: "Villa Kananga" },
+            { name: "Imadejas" },
+            { name: "Bayanihan" },
+            { name: "Golden Ribbon" },
+            { name: "Maon" },
+            { name: "Pangabuggan"},
+            { name: "San Vicente" },
+            { name: "Bit-os" }
+          ],
+          city: "Butuan City",
         },
         {
-        id: "Green",
-        barangays: [
-        { name: "Holy Redeemer (Langihan)", lat: 8.9501, lng: 125.5302 },
-        { name: "Obrero (Slaughterhouse)", lat: 8.9603, lng: 125.5404 },
-        { name: "Doongan", lat: 8.9705, lng: 125.5506 },
-        { name: "Ambago", lat: 8.9807, lng: 125.5608 },
-        { name: "Babag", lat: 9.0001, lng: 125.5802 },
-        { name: "Bading", lat: 9.0101, lng: 125.5902 },
-        { name: "Agusan Pequeño", lat: 9.0201, lng: 125.6002 },
-        { name: "Pagatpatan", lat: 9.0301, lng: 125.6102 },
-        { name: "P. Rizal (St. Joseph Subd., Guingona Subd., and Sintos Subd.)", lat: 9.0401, lng: 125.6202 },
-        { name: "Villa Kananga", lat: 9.0501, lng: 125.6302 },
-        { name: "Imadejas", lat: 9.0601, lng: 125.6402 },
-        { name: "Bayanihan (Luz Village, Pareja and DAR Subd.)", lat: 9.0701, lng: 125.6502 },
-        { name: "Golden Ribbon", lat: 9.0801, lng: 125.6602 },
-        { name: "Maon", lat: 9.0901, lng: 125.6702 },
-        { name: "Pangabuggan", lat: 9.1001, lng: 125.6802 },
-        { name: "San Vicente (Mandacpan)", lat: 9.1101, lng: 125.6902 },
-        { name: "Bit-os", lat: 9.1201, lng: 125.7002 },
-        { name: "Baan Riverside", lat: 9.1301, lng: 125.7102 },
-        { name: "Mahogany", lat: 9.1401, lng: 125.7202 },
-        { name: "Buhangin", lat: 9.1501, lng: 125.7302 },
-        { name: "Baan Km.3 Proper", lat: 9.1601, lng: 125.7402 },
-        { name: "IRA Homes", lat: 9.1701, lng: 125.7502 },
-        { name: "Barangay Lemon Proper", lat: 9.1801, lng: 125.7602 },
-        { name: "Barangay Tiniwisan", lat: 9.1901, lng: 125.7702 },
-        { name: "Cabcabon", lat: 9.2001, lng: 125.7802 },
-        { name: "Bobon", lat: 9.2101, lng: 125.7902 },
-        { name: "Barangay Taligaman Proper", lat: 9.2201, lng: 125.8002 },
-        { name: "Taligaman High School", lat: 9.2301, lng: 125.8102 },
-        { name: "Barangay Basag", lat: 9.2401, lng: 125.8202 },
-        { name: "Purok 5 Basag (Katangkonggan)", lat: 9.2501, lng: 125.8302 },
-        { name: "Ampayon Public Market", lat: 9.2601, lng: 125.8402 },
-        { name: "Ampayon Proper", lat: 9.2701, lng: 125.8502 },
-        { name: "Liboon Subdivision", lat: 9.2801, lng: 125.8602 },
-        { name: "Caraga State University", lat: 9.2901, lng: 125.8702 },
-        { name: "Barangay Camayah", lat: 9.3001, lng: 125.8802 }
-      ]
-      },
+          id: "Green",
+          barangays: [
+            { name: "Holy Redeemer (Langihan)" },
+            {name: "Obrero (Slaughterhouse)" },
+            { name: "Doongan" },
+            { name: "Ambago" },
+            { name: "Babag" },
+            { name: "Bading" },
+            { name: "Agusan Pequeño" },
+            { name: "Pagatpatan" },
+            { name: "P. Rizal (St. Joseph Subd., Guingona Subd., and Sintos Subd.)" },
+            { name: "Villa Kananga" },
+            { name: "Imadejas" },
+            { name: "Bayanihan (Luz Village, Pareja and DAR Subd.)" },
+            { name: "Golden Ribbon" },
+            { name: "Maon" },
+            { name: "Pangabuggan" },
+            { name: "San Vicente (Mandacpan)"},
+            { name: "Bit-os" },
+            { name: "Baan Riverside" },
+            { name: "Mahogany" },
+            { name: "Buhangin" },
+            { name: "Baan Km.3 Proper" },
+            { name: "IRA Homes" },
+            { name: "Barangay Lemon Proper" },
+            { name: "Barangay Tiniwisan" },
+            { name: "Cabcabon" },
+            { name: "Bobon" },
+            { name: "Barangay Taligaman Proper" },
+            { name: "Taligaman High School" },
+            { name: "Barangay Basag" },
+            { name: "Purok 5 Basag (Katangkonggan)" },
+            { name: "Ampayon Public Market" },
+            { name: "Ampayon Proper" },
+            { name: "Liboon Subdivision" },
+            { name: "Caraga State University" },
+            { name: "Barangay Camayah" }
+          ],
+          city: "Butuan City",
+        }
       ],
       selectedRoute: null,
       isModalOpen: false,
@@ -167,34 +177,21 @@ export default {
       endPoint: null,
       estimatedTime: null,
       map: null,
-      routingControl: null,
+      movingIcon: null,
+      polyline: null,
     };
   },
   computed: {
-    distance() {
-      if (this.startPoint && this.endPoint) {
-        const startLatLng = L.latLng(this.startPoint.lat, this.startPoint.lng);
-        const endLatLng = L.latLng(this.endPoint.lat, this.endPoint.lng);
-        return startLatLng.distanceTo(endLatLng); // Distance in meters
-      }
-      return 0;
-    },
-    estimatedTravelTime() {
-      const distanceInMeters = this.distance;
-      if (distanceInMeters > 0) {
-        const averageSpeed = 20 * 1000 / 3600; // Speed in meters per second (20 km/h)
-        const timeInSeconds = distanceInMeters / averageSpeed; // Time in seconds
-        return Math.round(timeInSeconds / 60); // Convert seconds to minutes
-      }
-      return 0;
-    },
     filteredBarangays() {
       if (!this.startPoint) {
         return this.selectedRoute?.barangays || [];
       }
       return this.selectedRoute.barangays.filter(
-        (barangay) => barangay.name !== this.startPoint.name
+        (barangay) => barangay.name !== this.startPoint
       );
+    },
+    estimatedTravelTime() {
+      return this.startPoint && this.endPoint ? 15 : 0; // Mock estimated time in minutes
     },
   },
   methods: {
@@ -204,106 +201,186 @@ export default {
       this.startPoint = null;
       this.endPoint = null;
       this.estimatedTime = null;
+
       this.$nextTick(() => {
         this.initMap();
       });
     },
     closeModal() {
       this.isModalOpen = false;
-      this.map = null; // Reset map when closing the modal
+      if (this.map) {
+        this.map.off();
+        this.map.remove();
+        this.map = null;
+      }
     },
     initMap() {
-      if (!this.map) {
-        this.map = L.map("map").setView([8.9501, 125.5302], 13);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors",
-        }).addTo(this.map);
-      } else {
-        this.map.setView([8.9501, 125.5302], 13); // Reset map position
-      }
-    },
-    updateRoute() {
-      if (this.routingControl) {
-        this.map.removeControl(this.routingControl);
-      }
-      if (this.startPoint && this.endPoint) {
-        this.estimatedTime = this.estimatedTravelTime;
-        this.displayRoute();
-      }
-    },
-    displayRoute() {
-      if (this.startPoint && this.endPoint) {
-        this.routingControl = L.Routing.control({
-          waypoints: [
-            L.latLng(this.startPoint.lat, this.startPoint.lng),
-            L.latLng(this.endPoint.lat, this.endPoint.lng),
-          ],
-          routeWhileDragging: true,
-        }).addTo(this.map);
+      let lat = 8.9501; // Default coordinates
+      let lng = 125.5302;
 
-        // Listen for the route to be calculated
-        this.routingControl.on('routesfound', (e) => {
-          const route = e.routes[0];
-          const { coordinates } = route;
-          this.animateIcon(coordinates);
-        });
-      }
-    },
-
-    animateIcon(coordinates) {
-      const svgIcon = L.divIcon({
-        html: `
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-      </svg>
-    `,
-        className: "custom-moving-icon",
-        iconSize: [30, 30],
-      });
-
-      const marker = L.marker([coordinates[0].lat, coordinates[0].lng], {
-        icon: svgIcon,
+      this.map = L.map("map").setView([lat, lng], 12);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '© OpenStreetMap contributors',
       }).addTo(this.map);
 
-      let i = 0;
-      const moveMarker = () => {
-        if (i < coordinates.length - 1) {
-          i++;
-          marker.setLatLng([coordinates[i].lat, coordinates[i].lng]);
-          setTimeout(moveMarker, 50); // Adjust speed here (50ms per step)
+      if (this.startPoint && this.endPoint) {
+        this.updateRoute();
+      }
+    },
+    async updateRoute() {
+      if (this.startPoint && this.endPoint && this.startPoint === this.endPoint) {
+        alert("Start point and End point cannot be the same!");
+        this.endPoint = null;
+        return;
+      }
+
+      this.clearRoute();
+      this.estimatedTime = this.estimatedTravelTime;
+      this.routeDisplay();
+    },
+    async routeDisplay() {
+      if (this.startPoint && this.endPoint) {
+        const startCoords = await this.getCoordinates(this.startPoint);
+        const endCoords = await this.getCoordinates(this.endPoint);
+
+        this.clearRoute();
+        this.map.setView([startCoords.lat, startCoords.lng], 12);
+
+        this.addMarkers(startCoords, endCoords);
+      }
+    },
+    async getCoordinates(address) {
+      try {
+        // Constructing dynamic address string
+        const addressString = `${address} ${this.selectedRoute.city}, Philippines`;
+
+        const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
+          params: {
+            q: addressString, // Dynamically built address with barangay, city, and province
+            format: 'json',
+            addressdetails: 1,
+          }
+        });
+
+        if (response.data && response.data.length > 0) {
+          const { lat, lon } = response.data[0];
+          return {
+            lat: parseFloat(lat),
+            lng: parseFloat(lon),
+          };
+        } else {
+          console.error("Location not found for:", addressString);
+          // Return default location if no location is found
+          return { lat: 8.9501, lng: 125.5302 }; // Default location (Butuan City)
+        }
+      } catch (error) {
+        console.error("Error fetching coordinates: ", error);
+        return { lat: 8.9501, lng: 125.5302 }; // Default location on error
+      }
+    },
+    addMarkers(startCoords, endCoords) {
+      // Add a marker for the start point
+      const startMarker = L.marker([startCoords.lat, startCoords.lng]).addTo(this.map);
+      startMarker.bindPopup(`<b>${this.startPoint}</b>`).openPopup();
+
+      // Add a red circle marker for the start point
+      const startCircle = L.circleMarker([startCoords.lat, startCoords.lng], {
+        color: 'red',
+        fillColor: 'red',
+        fillOpacity: 1,
+        radius: 10
+      }).addTo(this.map);
+      startCircle.bindPopup(`<b>${this.startPoint}</b>`).openPopup();
+
+      // Add a marker for the end point
+      const endMarker = L.marker([endCoords.lat, endCoords.lng]).addTo(this.map);
+      endMarker.bindPopup(`<b>${this.endPoint}</b>`).openPopup();
+
+      // Add line connecting start and end points
+      this.polyline = L.polyline([startCoords, endCoords], { color: 'blue' }).addTo(this.map);
+
+      // Add moving icon
+      this.moveIcon(startCoords, endCoords);
+    },
+    clearRoute() {
+      if (this.map) {
+        this.map.eachLayer((layer) => {
+          if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+            this.map.removeLayer(layer);
+          }
+        });
+        if (this.movingIcon) {
+          this.movingIcon.stop();
+        }
+      }
+    },
+    moveIcon(startCoords, endCoords) {
+      const icon = L.icon({
+        iconUrl: '/icon/tricycle.png', // Path to your icon
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+      });
+
+      this.movingIcon = L.marker([startCoords.lat, startCoords.lng], { icon }).addTo(this.map);
+
+      const latLngs = [startCoords, endCoords];
+      let startTime = null;
+      const duration = 5000; // Total time for the animation (in milliseconds)
+
+      // Function to ease the transition of the icon's movement
+      const ease = (t) => {
+        return t * t * (3 - 2 * t); // A common easing function (easeInOutQuad)
+      };
+
+      const move = (timestamp) => {
+        if (!startTime) startTime = timestamp; // Capture the start time
+        const elapsedTime = timestamp - startTime; // Time elapsed since the animation started
+        const progress = Math.min(elapsedTime / duration, 1); // Progress between 0 and 1
+
+        // Apply easing function to slow down the movement as the icon approaches the destination
+        const easedProgress = ease(progress);
+
+        const lat = startCoords.lat + (endCoords.lat - startCoords.lat) * easedProgress;
+        const lng = startCoords.lng + (endCoords.lng - startCoords.lng) * easedProgress;
+
+        this.movingIcon.setLatLng([lat, lng]);
+
+        if (progress < 1) {
+          requestAnimationFrame(move); // Continue the animation
+        } else {
+          // Once the destination is reached, stop the movement
+          this.movingIcon.setLatLng([endCoords.lat, endCoords.lng]);
         }
       };
 
-      moveMarker();
+      // Start the animation
+      requestAnimationFrame(move);
     },
-
-  },
+  }
 };
 </script>
 
 <style scoped>
-@import "leaflet/dist/leaflet.css";
-@import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
-
 .background-video {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    z-index: -1; /* Ensure the video stays in the background */
-  }
-  
-  /* Video Container */
-  .video-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -1;
+  /* Ensure the video stays in the background */
+}
+
+/* Video Container */
+.video-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
 
 .custom-moving-icon {
   width: 30px;
@@ -326,76 +403,80 @@ export default {
 }
 
 .routes-container {
-    position: relative; /* Position the content above the video */
-    text-align: center;
-    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background for readability */
-    color: #fff;
-    padding: 20px;
-  }
+  position: relative;
+  /* Position the content above the video */
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  /* Semi-transparent background for readability */
+  color: #fff;
+  padding: 20px;
+}
 
 .routes-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Force 2 columns */
-    gap: 20px;
-  }
-  
-  .route-card {
-    background-color: #1a1a1a;
-    padding: 20px;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.3s;
-  }
-  
-  .route-card:hover {
-    transform: scale(1.05);
-    background-color: #00bfff;
-    color: #000;
-  }
-  
-  .route-button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    text-align: center;
-    font-weight: bold;
-    border: none;
-    background: none;
-    cursor: pointer;
-    transition: color 0.3s;
-  }
-  
-  .route-icon {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #00bfff;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    color: #000;
-    font-size: 24px;
-    transition: background-color 0.3s, color 0.3s;
-  }
-  
-  .route-icon i {
-    font-size: 24px;
-  }
-  
-  .route-card:hover .route-icon {
-    background-color: #000;
-    color: #fff;
-  }
-  
-  .route-card span {
-    font-size: 18px;
-  }
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  /* Force 2 columns */
+  gap: 20px;
+}
+
+.route-card {
+  background-color: #1a1a1a;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s;
+}
+
+.route-card:hover {
+  transform: scale(1.05);
+  background-color: #00bfff;
+  color: #000;
+}
+
+.route-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.route-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #00bfff;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  color: #000;
+  font-size: 24px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.route-icon i {
+  font-size: 24px;
+}
+
+.route-card:hover .route-icon {
+  background-color: #000;
+  color: #fff;
+}
+
+.route-card span {
+  font-size: 18px;
+}
+
 #map {
   height: 60vh;
   width: 80%;
@@ -461,6 +542,38 @@ export default {
   /* Prevent the modal from exceeding the viewport height */
   overflow-y: auto;
   /* Add scroll if content exceeds height */
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    height: 90%;
+    /* Adjust for smaller screens */
+  }
+}
+
+
+.movement-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.movement-icon i {
+  font-size: 24px;
+  color: green;
+  margin-right: 10px;
+}
+
+
+.close-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
 }
 
 @media (max-width: 768px) {
