@@ -29,7 +29,7 @@
       </div>
 
       <div v-else>
-        <v-icon>mdi-account</v-icon> <!-- Display a default icon if no image -->
+        <v-icon class="avatar-icon">mdi-account</v-icon> <!-- Display a default icon if no image -->
       </div>
             </v-btn>  
           </template>
