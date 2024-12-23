@@ -1,214 +1,183 @@
 <template>
-  <div class="video-container">
-    <video autoplay muted loop class="background-video">
-      <source src="/public/images/background.mp4" type="video/mp4" />
-    </video>
-  </div>
+  <AppLayout>
+    <!-- Background Video -->
+    <div class="video-container">
+      <video autoplay muted loop class="background-video">
+        <source src="/public/images/background.mp4" type="video/mp4" />
+      </video>
+    </div>
 
-  <v-container v-if="user_info" class="profile-container" fluid>
-    <v-row justify="center" align="center">
-      <v-col cols="12" sm="8" md="6" lg="4" class="text-center">
+    <!-- Edit Profile Form -->
+    <div class="edit-profile-container">
+      <form @submit.prevent="saveProfile" class="form-container">
+        <!-- Main Form Section -->
+        <div class="main-form">
+          <h3>Edit Profile</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Profile Picture</label>
+              <input type="file" @change="handleImageUpload" />
+            </div>
+            <div class="form-group">
+              <label>Username</label>
+              <input v-model="form.username" type="text" placeholder="Username" />
+            </div>
+            <div class="form-group">
+              <label>First Name</label>
+              <input v-model="form.firstName" type="text" placeholder="First Name" />
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input v-model="form.lastName" type="text" placeholder="Last Name" />
+            </div>
+          </div>
+          <button type="button" class="toggle-btn" @click="toggleFields">
+            {{ showAdditionalFields ? "Hide Additional Fields" : "Show Additional Fields" }}
+          </button>
+        </div>
 
-        <!-- Profile Picture -->
-        <v-img :src="user_info.profile_picture
-          ? `https://abgsixxwevueabvuzpmo.supabase.co/storage/v1/object/public/avatars/${user_info.profile_picture}`
-          : '/path/to/default/profile.png'" alt="Profile Picture" class="profile-image" max-width="120" height="120"
-          contain>
-          <v-btn icon @click="triggerFileInput" class="profile-upload-btn">
-            <v-icon>mdi-camera</v-icon>
-          </v-btn>
-        </v-img>
-
-        <v-file-input ref="fileInput" v-show="showFileInput" label="Upload Profile Picture" accept="image/*"
-          @change="previewProfilePicture" hide-details dense color="white" class="white-input" />
-
-        <!-- Save Button to Save the Profile Picture -->
-        <v-btn v-if="tempProfilePicture" @click="saveProfilePicture" color="primary" class="mt-3 white-input">
-          Save Profile Picture
-        </v-btn>
-
-        <!-- User Information -->
-        <v-card class="pa-3 transparent-card">
-          <v-card-title class="headline white--text">{{ user_info.fullname || 'No Name Provided' }}</v-card-title>
-          <v-divider></v-divider>
-          <v-card-subtitle class="white--text">Email:</v-card-subtitle>
-          <v-card-text class="white--text">{{ user_info.email }}</v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-btn color="error" class="mt-3 white--text" @click="logout">
-    Logout
-  </v-btn>
-  </v-container>
-
-  <div v-else>
-    <p class="white--text">Loading user profile...</p>
-  </div>
+        <!-- Additional Section with Transition -->
+        <transition name="fade-slide">
+          <div v-if="showAdditionalFields" class="additional-section">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Address</label>
+                <input v-model="form.address" type="text" placeholder="Address" />
+              </div>
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input v-model="form.phoneNumber" type="text" placeholder="Phone Number" />
+              </div>
+              <div class="form-group full-width">
+                <label>About Me</label>
+                <textarea v-model="form.about" placeholder="About Me"></textarea>
+              </div>
+            </div>
+            <button type="submit" class="save-btn">Save</button>
+          </div>
+        </transition>
+      </form>
+    </div>
+  </AppLayout>
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue';
+import AppLayout from '@/components/AppLayout.vue';
 import { supabase } from '../../supabaseClient'
 
-export default {
-  data() {
-    return {
-      showFileInput: false, // Controls the visibility of the file input
-      user_info: null,
-      tempProfilePicture: null, // Holds temporary preview of the profile picture
-    };
-  },
-  methods: {
-    triggerFileInput() {
-      this.showFileInput = !this.showFileInput; // Toggle file input visibility
-    },
-    previewProfilePicture(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.tempProfilePicture = e.target.result; // Temporary preview
-        };
-        reader.readAsDataURL(file);
-      }
-    },
-    async logout() {
-      try {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          console.error("Error logging out:", error.message);
-        } else {
-          console.log("Logged out successfully");
-          // Redirect to the login page or home page
-          this.$router.push("/");
-        }
-      } catch (err) {
-        console.error("Unexpected error during logout:", err.message);
-      }
-    },
-    async saveProfilePicture() {
-      if (this.tempProfilePicture && this.$refs.fileInput.files.length) {
-        const file = this.$refs.fileInput.files[0]; // Get the selected file
-        console.log("Uploading file:", file); // Debugging line
+const form = ref({
+  profileImage: null, // Store image file
+  username: "",
+  firstName: "",
+  lastName: "",
+  address: "",
+  phoneNumber: "",
+  about: "",
+});
 
-        // Ensure the file is an image
-        if (!file.type.startsWith("image/")) {
-          console.error("Selected file is not an image");
-          return;
-        }
+const showAdditionalFields = ref(false);
 
-        try {
-          // Upload the image to Supabase storage under the 'avatars' bucket (without 'profile_pictures/')
-          const { data, error } = await supabase.storage.from('avatars').upload(`${Date.now()}_${file.name}`, file);
+const toggleFields = () => {
+  showAdditionalFields.value = !showAdditionalFields.value;
+};
 
-          if (error) {
-            console.error("Error uploading image:", error.message);
-            return;
-          }
-
-          console.log("File uploaded successfully:", data); // Debugging line
-
-          // Get the full path of the uploaded image (including 'avatars/' part)
-          const fullPath = data.path; // Example: '{timestamp}_{filename}'
-
-          // Update the profile with the relative path (no 'profile_pictures/' part)
-          const relativePath = fullPath; // This gives us just the filename
-
-          // Update the user's profile picture with the new file
-          this.user_info.profile_picture = relativePath;
-
-          // Save the relative path (only the filename) to the database
-          await this.updateUserInfo(relativePath); // Pass only the relative path (filename)
-
-          // Hide the save button by resetting the tempProfilePicture
-          this.showFileInput = false;
-          this.tempProfilePicture = null;
-
-        } catch (error) {
-          console.error("Error during image upload:", error.message);
-        }
-      } else {
-        console.log("No profile picture selected");
-      }
-    }
-    ,
-    async updateUserInfo(profilePicturePath) {
-      if (!this.user_info) {
-        console.error("User info is not available");
-        return; // Exit if user_info is not available
-      }
-
-      console.log("Updating user profile...");
-      console.log("User ID:", this.user_info.id); // Log the user id
-      console.log("New Profile Picture URL:", profilePicturePath); // Log the new profile picture
-
-      const { data, error } = await supabase
-        .from('users_info')
-        .upsert({
-          id: this.user_info.id,
-          profile_picture: profilePicturePath, // Store the relative path (filename) in the database
-        });
-
-      if (error) {
-        console.error("Error updating user profile:", error.message);
-      } else {
-        console.log("User profile updated successfully:", data); // Log the result of the upsert operation
-      }
-    }
-  },
-  async mounted() {
-    try {
-      // Fetch current authenticated user
-      const { data: { user }, error } = await supabase.auth.getUser();
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (user) {
-        // Fetch user information from users_info table
-        const { data: userInfo, error: fetchError } = await supabase
-          .from('users_info')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (fetchError) {
-          throw new Error(fetchError.message);
-        } else {
-          // Check if userInfo exists and has profile_picture
-          if (userInfo) {
-            this.user_info = {
-              id: user.id,
-              email: user.email,
-              fullname: userInfo.fullname || 'No Name Provided',
-              profile_picture: userInfo.profile_picture || null, // Default to null if not available
-            };
-          } else {
-            this.user_info = null; // Set to null if userInfo doesn't exist
-          }
-        }
-      } else {
-        console.log('User not logged in');
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error.message);
-      this.user_info = null; // Set user_info to null if an error occurs
-    }
+// Handle file selection and update form.profileImage
+const handleImageUpload = (event) => {
+  const file = event.target.files[0]; // Get the selected file
+  if (file) {
+    form.value.profileImage = file; // Set the file to the form object
   }
 };
+
+const saveProfile = async () => {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.error("Error fetching user:", userError?.message || "User not authenticated");
+      alert("You need to be logged in to save a profile.");
+      return;
+    }
+
+    // Prepare profile data object with form data
+    let profileData = {
+      username: form.value.username,
+      firstName: form.value.firstName,
+      lastName: form.value.lastName,
+      address: form.value.address,
+      phoneNumber: form.value.phoneNumber,
+      about: form.value.about,
+      v_id: user.id, // Link to the authenticated user
+    };
+
+    // Upload image if provided
+    if (form.value.profileImage) {
+      console.log("Uploading image...");
+      const imageFile = form.value.profileImage; // The file from the form
+      const timestamp = Date.now(); // Adding timestamp to make the file path unique
+      const filePath = `profiles/${user.id}/${timestamp}-${imageFile.name}`; // Path with unique name
+
+      // Upload the file to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase
+        .storage
+        .from('profile-images') // Bucket name
+        .upload(filePath, imageFile);
+
+      if (uploadError) {
+        console.error("Image upload failed:", uploadError.message);
+        alert("Failed to upload profile image. Please try again.");
+        return;
+      }
+
+      // Get the public URL of the uploaded image
+      const { data: publicUrlData } = await supabase
+        .storage
+        .from('profile-images')
+        .getPublicUrl(filePath);
+
+      if (!publicUrlData?.publicUrl) {
+        console.error("Failed to get public URL for uploaded image.");
+        alert("Image upload succeeded, but could not retrieve its URL.");
+        return;
+      }
+
+      console.log("Image uploaded successfully:", publicUrlData.publicUrl);
+      profileData.profile_image = publicUrlData.publicUrl; // Assign the URL to profileData
+    }
+
+    // Insert or update profile data in the database
+    console.log("Saving profile data:", profileData);
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert(profileData, { onConflict: ['id'] }); // Use `upsert` to insert or update by user_id
+
+    if (error) {
+      console.error("Error saving profile:", error.message);
+      alert("Failed to save profile. Please try again.");
+    } else {
+      console.log("Profile saved successfully:", data);
+      alert("Profile saved successfully!");
+    }
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    alert("An unexpected error occurred. Please try again.");
+  }
+};
+
 </script>
 
-
 <style scoped>
+/* Background Video */
 .background-video {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   z-index: -1;
-  filter: blur(5px);
+  min-height: 100vh;
 }
 
 .video-container {
@@ -220,89 +189,126 @@ export default {
   overflow: hidden;
 }
 
-.white-input .v-input__control {
-  background-color: transparent !important;
-  color: white !important;
-}
-
-.white-input .v-label {
-  color: white !important;
-}
-
-.profile-container {
-  width: 100%;
-  max-width: 50%;
-  text-align: center;
-  margin-top: 20px;
-  background-color: rgba(80, 81, 82, 0.7);
-  border-radius: 10px;
+/* Edit Profile Container */
+.edit-profile-container {
+  margin-top: 10vb;
+  display: flex;
   padding: 20px;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  font-family: Arial, sans-serif;
+  color: #fff;
   z-index: 1;
   position: relative;
 }
 
-.profile-image {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  position: relative;
-  border: 3px solid white;
-  margin-bottom: 10px;
+/* Form Layout */
+.form-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
 }
 
-.profile-upload-btn {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  background-color: rgba(255, 255, 255, 0.4);
-  border: 2px solid white;
-  border-radius: 50%;
+.main-form {
+  flex: 1;
+  background: #17172a;
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 500px;
+}
+
+.additional-section {
+  flex: 0 0 300px;
+  background: #232333;
+  padding: 20px;
+  border-radius: 8px;
+  color: #fff;
+}
+
+/* Grid Layout for Fields */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group.full-width {
+  grid-column: span 2; /* Full row */
+}
+
+/* Input and Textarea Styling */
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background: #232333;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.form-group textarea {
+  resize: none;
+  height: 100px;
+}
+
+/* Toggle Button */
+.toggle-btn {
+  background-color: #007bb5;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
   cursor: pointer;
-  padding: 8px;
+  margin-top: 20px;
 }
 
-.profile-upload-btn:hover {
-  background-color: rgba(255, 255, 255, 0.7);
+.toggle-btn:hover {
+  background-color: #005f8d;
 }
 
-.transparent-card {
-  margin-top: 10%;
-  background-color: transparent !important;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white !important;
-  padding: 15px;
+/* Save Button */
+.save-btn {
+  background-color: #007bb5;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 1.1em;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
 }
 
-.white--text {
-  color: white !important;
+.save-btn:hover {
+  background-color: #005f8d;
 }
 
-@media (max-width: 600px) {
-  .profile-image {
-    width: 100px;
-    height: 100px;
-  }
+/* Transition Effects */
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: all 0.4s ease;
+}
 
-  .profile-upload-btn {
-    padding: 6px;
-  }
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(-20px);
+}
 
-  .transparent-card {
-    padding: 10px;
-  }
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
 
-  .logout-btn {
-    background-color: #f44336;
-    /* Red color for logout */
-    color: white;
-    margin-top: 15px;
-  }
-
-  .logout-btn:hover {
-    background-color: #d32f2f;
-    /* Darker red on hover */
+/* Responsive Design */
+@media (max-width: 500px) {
+  .form-grid {
+    grid-template-columns: 2fr;
   }
 }
 </style>
