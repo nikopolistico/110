@@ -466,7 +466,7 @@ export default {
           const user_id = data.user?.id
           if (!user_id) throw new Error('Failed to get user ID during signup.')
 
-          const { error: insertError } = await supabase.from('verified_users').insert([
+          const { error: insertError } = await supabase.from('users_').insert([
             {
               verified_id: user_id,
               fullname: this.fullname,
