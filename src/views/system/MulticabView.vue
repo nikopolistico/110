@@ -74,16 +74,16 @@ export default {
       {
         id: "1",
         barangays: [
-          { name: "Bangcasi Butuan" }, { name: "Dumalagan" }, { name: "J.C Aquino Avenue" },
-          { name: "A.D. Curato St." }, { name: "Durano St. Butuan" },
-          { name: "J.C Aquino Ave." }
+          { name: "Bangcasi Airport" }, { name: "Dumalagan Butuan" }, { name: "J.C Aquino Avenue" },
+          { name: "A.D. Curato St. Butuan" }, { name: "Durano St. Butuan" },
+          { name: "T. Calo St.Butuan" },
         ]
       },
         {
         id: "2",
         barangays: [
           { name: "Bangcasi" }, { name: "Dumalagan" }, { name: "J.C Aquino Avenue" },
-          { name: "North Montilla Blvd" }, { name: "T. Calo St." },
+          { name: "North Montilla Blvd" }, { name: "T. Calo St.Butuan" },
           { name: "J.C Aquino Ave" }, { name: "Dumalagan" }
         ]
       },
@@ -91,12 +91,12 @@ export default {
         id: "4",
         barangays: [
           { name: "Bangcasi" }, { name: "Dumalagan" }, { name: "J.C Aquino Avenue" },
-          { name: "A. D. Curato St. " }, { name: "T. Sanchez St. " },
-          { name: "M. Calo St." }, { name: "G. Flores St." },
+          { name: "A. D. Curato St. Butuan" }, { name: "T. Sanchez St. Butuan" },
+          { name: "M. Calo St." }, { name: "G. Flores St. Butuan" },
           { name: "Rosales St. " }, { name: "North Montilla Blvd. " },
           { name: "BOPAI Puregold Butuan Tabuan" }, { name: "Holy Redeemer" },
-          { name: "City Hall" }, { name: "Gaisano" },
-          { name: "balik J. C. Aquino" }, { name: "Dumalagan" }
+          { name: "Butuan City Hall" }, { name: "Gaisano Butuan" },
+          { name: "J. C. Aquino Butuan" }, { name: "Dumalagan" }
         ]
       },
       {
@@ -392,7 +392,7 @@ async showRoute() {
           return;
         }
 
-        console.log("Trip saved successfully with route_id:", routeId);
+        alert("Trip saved successfully with route_id:", routeId);
 
       } catch (error) {
         console.error("Error saving route and trip:", error);
