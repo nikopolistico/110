@@ -300,10 +300,7 @@ async showRoute() {
   if (locations.length < 5) {
     console.log("Not enough valid coordinates to create a route.");
   }
-}
-
-,
-
+},
 
     closeRouteModal() {
       this.isModalOpen = false;
@@ -384,7 +381,7 @@ async showRoute() {
           return;
         }
 
-        console.log("Trip saved successfully with route_id:", routeId);
+        alert("Trip saved successfully with route_id:", routeId);
 
       } catch (error) {
         console.error("Error saving route and trip:", error);
