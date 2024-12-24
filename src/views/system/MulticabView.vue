@@ -364,7 +364,7 @@ async showRoute() {
               RoutNTricC: this.selectedRoute.id,
               origin: startingLocation,
               destination: endLocation,
-              vehicle_type: 'tricyle',
+              vehicle_type: 'multicab',
               v_id: userId
             }
           ])
