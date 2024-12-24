@@ -1,403 +1,275 @@
+<script setup>
+import { RouterView } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useDisplay } from 'vuetify'
+
+const { xsOnly } = useDisplay()
+const isMobile = computed(() => xsOnly.value)
+</script>
+
 <template>
   <v-app>
+    <!-- Background Video -->
+    <div class="video-container">
+      <video autoplay muted loop class="background-video">
+        <source src="/public/images/register.mp4" type="video/mp4" />
+      </video>
+    </div>
+
     <!-- Header Section -->
     <v-app-bar app flat class="transparent-navbar">
       <v-container class="d-flex align-center">
         <!-- Logo -->
-        <v-app-bar-title class="logo">Easy Commute</v-app-bar-title>
+        <v-app-bar-title class="logo">
+          Easy Commute
+        </v-app-bar-title>
 
         <!-- Navigation -->
         <v-spacer></v-spacer>
-        <nav v-if="!mobile">
-          <router-link to="/home" class="nav-link">Home</router-link>
-          <router-link to="/routes" class="nav-link">Ride</router-link>
-          <router-link to="/fare" class="nav-link">Fare</router-link>
-          <router-link to="/contact" class="nav-link">Contact Us</router-link>
-        </nav>
-
-        <!-- Mobile Navigation Toggle -->
-        <v-btn icon v-if="mobile" @click="drawer = !drawer">
-          <v-icon color="white">mdi-menu</v-icon>
-        </v-btn>
-
-        <!-- Profile Dropdown Menu -->
-        <v-menu v-model="menu" offset-y>
-          <template v-slot:activator="{ props }">
-            <v-btn icon v-bind="props"> 
-              <div v-if="profileImageUrl" class="profile-image-container">
-        <img :src="profileImageUrl" alt="Profile Image" class="profile-image" />
-      </div>
-
-      <div v-else>
-        <v-icon class="avatar-icon">mdi-account</v-icon> <!-- Display a default icon if no image -->
-      </div>
-            </v-btn>  
-          </template>
-
-          <v-list class="dropdown-menu" style="background-color: black;">
-            <v-list-item @click="$router.push('/profile')" class="dropdown-item">
-              <v-list-item-title>Profile</v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="signOut" class="dropdown-item">
-              <v-list-item-title>Logout</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+        <router-link to="/">
+          <button class="ml-3 adjustable-button">Sign in</button>
+        </router-link>
       </v-container>
     </v-app-bar>
+    <!-- FORMS -->
+    <v-container fluid class="fill-height">
+      <v-row align="center" justify="center">
+        <v-col cols="12" sm="8" md="6" lg="4">
+          <!-- Apply transparent background to v-card using class -->
+          <v-card class="elevation-12 rounded-xl transparent-card blurred-background flexible-form">
+            <v-toolbar dark flat class="rounded-t-xl transparent-card">
+              <v-toolbar-title class="text-h5 font-weight-bold text-center white--text">
+                Easy Commute
+              </v-toolbar-title>
+            </v-toolbar>
 
-    <!-- Mobile Navigation Drawer -->
-    <v-navigation-drawer v-model="drawer" temporary class="mobile-drawer">
-      <v-list>
-        <v-list-item>
-          <router-link to="/home" class="nav-link">Home</router-link>
-        </v-list-item>
-        <v-list-item>
-          <router-link to="/routes" class="nav-link">Ride</router-link>
-        </v-list-item>
-        <v-list-item>
-          <router-link to="/fare" class="nav-link">Fare</router-link>
-        </v-list-item>
-        <v-list-item>
-          <router-link to="/contact" class="nav-link">Contact Us</router-link>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
+            <v-card-text class="pa-6 transparent-card white--text">
+              <!-- Form Tabs and other content -->
+              <v-tabs v-model="currentForm" grow class="white--text">
+                <v-tab value="login">Login</v-tab>
+                <v-tab value="signup">Sign Up</v-tab>
+              </v-tabs>
 
-    <!-- Slot for Child Content -->
-    <slot /> <!-- Add this to render child content like HomeView.vue -->
+              <v-window v-model="currentForm">
+                <v-window-item value="login">
+                  <v-form @submit.prevent="handleSubmit('login')" class="mt-5">
+                    <v-text-field
+                      v-model="loginEmail"
+                      label="Email address"
+                      prepend-icon="mdi-email"
+                      type="email"
+                      required
+                      filled
+                      class="white-input"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="loginPassword"
+                      label="Password"
+                      prepend-icon="mdi-lock"
+                      :type="showPassword ? 'text' : 'password'"
+                      :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                      @click:append="showPassword = !showPassword"
+                      required
+                      filled
+                      class="white-input"
+                    ></v-text-field>
+                    <label class="d-flex align-center ml-2 text-sm">
+                      <input v-model="rememberMe" type="checkbox" class="custom-checkbox" />
+                      <span class="ml-2 white--text">Remember me</span>
+                    </label>
+
+                    <v-btn color="#98DED9" class="mt-4" block type="submit" rounded>
+                      Sign In
+                    </v-btn>
+                  </v-form>
+                </v-window-item>
+
+                <v-window-item value="signup">
+                  <v-form @submit.prevent="handleSubmit('signup')" class="mt-5">
+                    <!-- Signup form fields -->
+                    <v-text-field
+                      v-model="fullname"
+                      label="Full Name"
+                      prepend-icon="mdi-account"
+                      :rules="[rules.required, rules.fullname]"
+                      required
+                      filled
+                      class="white-input"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="email"
+                      label="Email address"
+                      prepend-icon="mdi-email"
+                      :rules="[rules.required, rules.email]"
+                      required
+                      filled
+                      class="white-input"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="phone_number"
+                      label="Phone number"
+                      prepend-icon="mdi-phone"
+                      :rules="[rules.required, rules.phone]"
+                      required
+                      filled
+                      class="white-input"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="password"
+                      label="Password"
+                      prepend-icon="mdi-lock"
+                      :type="showPassword ? 'text' : 'password'"
+                      :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                      @click:append="showPassword = !showPassword"
+                      :rules="[rules.required, rules.password]"
+                      required
+                      filled
+                      class="white-input"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="confirmPassword"
+                      label="Confirm Password"
+                      prepend-icon="mdi-lock-check"
+                      :type="showPassword ? 'text' : 'password'"
+                      :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                      @click:append="showPassword = !showPassword"
+                      :rules="[rules.required, rules.confirmPassword]"
+                      required
+                      filled
+                      class="white-input"
+                    ></v-text-field>
+                    <v-btn color="#98DED9" class="mt-4" block type="submit" rounded>
+                      Sign Up
+                    </v-btn>
+                  </v-form>
+                </v-window-item>
+              </v-window>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+    <v-snackbar v-model="snackbar" :color="snackbarColor" :timeout="3000" class="white--text">
+      {{ snackbarText }}
+      <template v-slot:action="{ attrs }">
+        <v-btn text v-bind="attrs" @click="snackbar = false"> Close </v-btn>
+      </template>
+    </v-snackbar>
+
+    <RouterView />
   </v-app>
 </template>
 
-<script setup>
-
-import { supabase } from '@/supabaseClient.js';
-import { ref, onMounted } from 'vue';
-import { useDisplay } from "vuetify";
-import { defineProps } from 'vue';
-
-
-const { mobile } = useDisplay();
-const drawer = ref(false);
-const menu = ref(false);
-
-async function signOut() {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    // Handle the error (e.g., show a message to the user)
-    console.error('Error signing out:', error.message);
-  } else {
-    // Optionally, handle success (e.g., redirect the user or show a message)
-    console.log('Successfully signed out!');
-    // Example: Redirect to the login page after sign out
-    window.location.href = '/';  // Adjust the path based on your routing setup
-  }
-}
-
-const isLoading = ref(true);
-const profileImageUrl = ref(null);
-
-const fetchProfileImage = async () => {
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) {
-      console.error("Error fetching user:", error?.message);
-      return;
-    }
-
-    const { data: profileData, error: fetchError } = await supabase
-      .from('profiles')
-      .select('profile_image')
-      .eq('v_id', user.id)
-      .single();
-
-    if (fetchError) {
-      console.error("Error fetching profile data:", fetchError.message);
-      return;
-    }
-
-    if (profileData && profileData.profile_image) {
-      profileImageUrl.value = profileData.profile_image;
-    }
-  } catch (error) {
-    console.error("Error fetching profile:", error);
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-onMounted(() => {
-  fetchProfileImage();
-});
-
-
-</script>
-
 <style scoped>
-
-
-.profile-image-container {
-  width: 40px; /* You can adjust the size */
-  height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  border-radius: 50%; /* Makes the container circular */
-  background-color: #f0f0f0; /* Optional: Adds a background color */
+.background-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%; /* Default width */
+  height: auto; /* Maintain aspect ratio */
+  transform: translate(-50%, -50%); /* Center the video */
+  min-width: 100%; /* Ensure video covers the width */
+  min-height: 100%; /* Ensure video covers the height */
+  object-fit: cover; /* Scale to cover the entire container */
+  z-index: -1; /* Behind all content */
 }
-
-.profile-image {
-  width: 100%; /* Makes the image fit the container */
+.video-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
-  object-fit: cover; /* Ensures the image covers the entire container without distortion */
-  border-radius: 50%; /* Ensures the image is rounded */
+  overflow: hidden;
 }
 
-/* Navbar Styles */
-.transparent-navbar {
-  background-color: rgba(0, 0, 0, 0.3);
-  /* Semi-transparent fallback */
-}
-
-.nav-link {
-  color: white;
-  text-decoration: none;
-  margin-right: 30px;
-  font-weight: 400;
-  transition: opacity 0.3s ease;
-  font-family: "Lucida Sans", Geneva, Verdana, sans-serif;
-}
-
-.nav-link:hover {
-  opacity: 0.8;
-}
-
-/* Logo Styles */
 .logo {
-  font-size: 1.5rem;
-  /* Base size for larger screens */
+  font-size: 2em;
   font-weight: bold;
   color: white;
-  text-align: center;
-  flex-grow: 1;
-  /* Ensure logo takes available space */
-  transform: translate(-15%, 0%);
+  user-select: none;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
+}
+.transparent-navbar {
+  background-color: transparent;
 }
 
-/* Ensures avatar icon is visible and sized correctly */
-.avatar-icon {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 36px;
-  height: 36px;
-  background-color: #333;
-  /* Adjust background color if needed */
-  border-radius: 50%;
-  /* Circular shape */
+.white-text-custom {
+  color: white !important;
+}
+
+.adjustable-button {
+  position: absolute;
+  top: var(--button-top, 50%); /* Default to center vertically */
+  left: var(--button-left, 50%); /* Default to center horizontally */
+  transform: translate(-50%, -50%); /* Center the button exactly */
+  width: 130px;
+  height: 50px;
+  background: transparent;
   border: 2px solid white;
-  /* Add white border for visibility */
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-  /* Optional shadow for depth */
-  font-size: 24px;
-  /* Icon size */
-  color: white;
-  /* Icon color */
-}
-
-/* Dropdown Items */
-.dropdown-item {
-  padding: 10px 20px;
-  /* Add padding for a cleaner look */
-  color: #ffffff;
-  /* White text color */
+  border-radius: 6px;
   cursor: pointer;
-  /* Pointer cursor for clickable items */
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 1.1em;
+  color: white;
+  font-weight: 500;
+  transition: 0.5s;
 }
 
-/* Hover Effect for Dropdown Items */
-.dropdown-item:hover {
-  background-color: #007bff;
-  /* Bright blue background on hover */
-  color: #ffffff;
-  /* Keep text white */
+.adjustable-button:hover {
+  background: #fff;
+  color: #162938;
 }
 
-/* Active State (Optional) */
-.dropdown-item:active {
-  background-color: #0056b3;
-  /* Slightly darker blue for active state */
-  color: #ffffff;
-  /* Keep text white */
+.adjustable-button:disabled {
+  pointer-events: none;
 }
 
-/* Mobile Drawer */
-.mobile-drawer {
-  background-color: black;
+.adjustable button:active {
+  box-shadow: none;
+  transform: translateY(0);
 }
 
-.v-list-item a {
-  color: #00bfff;
-  text-decoration: none;
-  font-size: 1.1rem;
+/* Responsive adjustments */
+.adjustable-button {
+  position: absolute;
+  top: var(--button-top, 60%); /* Default to center vertically */
+  left: var(--button-left, 85%); /* Default to center horizontally */
+  transform: translate(-50%, -50%); /* Center the button exactly */
+  width: 130px;
+  height: 50px;
+  background: transparent;
+  border: 2px solid white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1em;
+  color: white;
+  font-weight: 500;
+  transition: 0.5s;
 }
 
-.v-list-item a:hover {
-  color: #007bb5;
+.adjustable-button:hover {
+  background: #fff;
+  color: #162938;
 }
 
+.adjustable-button:disabled {
+  pointer-events: none;
+}
 
+.adjustable button:active {
+  box-shadow: none;
+  transform: translateY(0);
+}
 
-/* Mobile Responsiveness */
+/* Media Query for Small Devices */
 @media (max-width: 600px) {
-  .main-title {
-    font-size: 3rem;
-  }
-
-  .subtitle {
-    font-size: 1.2rem;
-  }
-
-  .contact-button {
-    font-size: 1rem;
-    padding: 8px 15px;
-  }
-
-  .overlay {
-    left: 5%;
-    width: 90%;
-  }
-
-  .nav-link {
-    margin-right: 20px;
-  }
-
-  /* Navigation drawer */
-  .v-navigation-drawer {
-    width: 250px;
-    background-color: black;
-  }
-
-  .v-list-item {
-    padding: 16px 0;
-  }
-
-  .v-list-item a {
-    font-size: 1.1rem;
-    padding: 8px 16px;
-    color: #007bb5;
-  }
-
-  .v-list-item a:hover {
-    color: #00bfff;
-  }
-
-  .dropdown-item {
-    padding: 0;
-    color: #00bfff;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    cursor: pointer;
-    /* Make items clickable */
+  .adjustable-button {
+    width: 130px; /* Larger width for small devices */
+    font-size: 1rem; /* Larger, more legible font size */
+    top: 60%; /* Slightly adjust position for better visibility */
+    left: 75%;
+    transform: translate(-50%, -50%);
   }
 }
-
-/* Additional Media Queries for Tablets and Larger Devices */
-@media (max-width: 768px) {
-  .main-title {
-    font-size: 4rem;
-  }
-
-  .subtitle {
-    font-size: 1.5rem;
-  }
-
-  .nav-link {
-    font-size: 1.1rem;
-    margin-right: 25px;
-  }
-
-  /* Navigation drawer */
-  .v-navigation-drawer {
-    width: 250px;
-    background-color: black;
-  }
-
-  .v-list-item {
-    padding: 16px 0;
-  }
-
-  .v-list-item a {
-    font-size: 1.1rem;
-    padding: 8px 16px;
-    color: #007bb5;
-  }
-
-  .v-list-item a:hover {
-    color: #00bfff;
-  }
-
-  .dropdown-item {
-    padding: 0;
-    color: #00bfff;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    cursor: pointer;
-    /* Make items clickable */
-  }
-}
-
-@media (max-width: 1200px) {
-  .main-title {
-    font-size: 5rem;
-  }
-
-  .subtitle {
-    font-size: 1.8rem;
-  }
-
-  .dropdown-item {
-    padding: 0;
-    color: #00bfff;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    cursor: pointer;
-    /* Make items clickable */
-  }
-
-  .main-title {
-    font-size: 5.5rem;
-  }
-
-  .subtitle {
-    font-size: 2rem;
-  }
-
-  .nav-link {
-    font-size: 1.2rem;
-  }
-
-  /* Navigation drawer */
-  .v-navigation-drawer {
-    width: 250px;
-    background-color: black;
-  }
-
-  .v-list-item {
-    padding: 16px 0;
-  }
-
-  .v-list-item a {
-    font-size: 1.1rem;
-    padding: 8px 16px;
-    color: #007bb5;
-  }
-
-  .v-list-item a:hover {
-    color: #00bfff;
-  }
-}
-
 /* Adjustments for smaller screens */
 @media (max-width: 900px) {
   .logo {
@@ -415,13 +287,221 @@ onMounted(() => {
   .logo {
     font-size: 1em;
   }
-
 }
 
-@media (max-width: 300px) {
-  .logo {
-    font-size: 1em;
-  }
+/* Transparent Card */
+.transparent-card {
+  background-color: transparent !important;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
 
+/* Blurred Background */
+.blurred-background {
+  backdrop-filter: blur(10px);
+}
+
+/* White text for forms */
+.white-input .v-input__control {
+  color: white !important;
+}
+
+/* Ensure all text is white */
+.white--text {
+  color: white !important;
+}
+
+.custom-checkbox {
+  width: 16px;
+  height: 16px;
+  border: 2px solid white;
+  border-radius: 4px;
+  background-color: transparent;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative; /* To position the checkmark inside */
+}
+
+.custom-checkbox:checked {
+  background-color: transparent;
+  border-color: white; /* Ensure the border color is white when checked */
+}
+
+.custom-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  width: 4px;
+  height: 7px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg); /* Make the checkmark */
+}
+
+.ml-2 {
+  margin-left: 8px;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.align-center {
+  align-items: center;
+}
+
+/* Media Queries for Responsiveness */
+
+/* Small Devices (e.g., Phones) */
+@media (max-width: 600px) {
+  .transparent-card {
+    max-height: 80vh; /* Limit height for smaller screens */
+    overflow-y: auto;
+    /* Add padding for better usability */
+    background-color: transparent; /* Keep background transparent */
+  }
+}
+
+
+/* Medium Devices (e.g., Tablets) */
+@media (min-width: 601px) and (max-width: 960px) {
+  .transparent-card {
+    max-height: 80vh; /* Adjust height for medium screens */
+    overflow-y: auto;
+    background-color: transparent; /* Keep background transparent */
+  }
 }
 </style>
+
+<script>
+import { supabase } from '../../supabaseClient'
+
+export default {
+  data() {
+    return {
+      currentForm: 'login',
+      showPassword: false,
+      fullname: '',
+      email: '',
+      phone_number: '',
+      password: '',
+      confirmPassword: '',
+      loginEmail: '',
+      loginPassword: '',
+      rememberMe: false,
+      snackbar: false,
+      snackbarText: '',
+      snackbarColor: '',
+      rules: {
+        required: (v) => !!v || 'This field is required',
+        fullname: (v) => (v && v.length >= 10) || 'Name should be at least 10 characters long',
+        email: (v) => /.+@.+\..+/.test(v) || 'E-mail must be valid',
+        phone: (v) =>
+          (v && v.length === 11 && /^\d+$/.test(v)) || 'Phone number should be 11 digits',
+        password: (v) =>
+          (v &&
+            v.length >= 8 &&
+            /[A-Z]/.test(v) &&
+            /[a-z]/.test(v) &&
+            /[0-9]/.test(v) &&
+            /[!@#$%^&*(),.?":{}|<>]/.test(v)) ||
+          'Password must be at least 8 characters and contain uppercase, lowercase, number, and special character',
+      },
+    }
+  },
+  methods: {
+    showSnackbar(text, color) {
+      this.snackbarText = text
+      this.snackbarColor = color
+      this.snackbar = true
+    },
+    async handleSubmit(formType) {
+      if (formType === 'login') {
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: this.loginEmail,
+            password: this.loginPassword,
+          })
+
+          if (error) throw error
+
+          if (!data.session) {
+            throw new Error('No session returned from login.')
+          }
+
+          localStorage.setItem('access_token', data.session.access_token)
+          localStorage.setItem('refresh_token', data.session.refresh_token)
+
+          if (this.rememberMe) {
+            localStorage.setItem('email', this.loginEmail)
+            localStorage.setItem('password', this.loginPassword)
+          } else {
+            localStorage.removeItem('email')
+            localStorage.removeItem('password')
+          }
+
+          this.showSnackbar('Login successful!', 'success')
+          // Redirect to home page after successful signup
+          this.$router.push('/home')
+        } catch (error) {
+          console.error('Login error:', error)
+          this.showSnackbar(`Login error: ${error.message}`, 'error')
+        }
+      } else if (formType === 'signup') {
+        if (this.password !== this.confirmPassword) {
+          this.showSnackbar('Passwords do not match', 'error')
+          return
+        }
+
+        try {
+          const { data, error } = await supabase.auth.signUp({
+            email: this.email,
+            password: this.password,
+          })
+
+          if (error) throw error
+
+          const user_id = data.user?.id
+          if (!user_id) throw new Error('Failed to get user ID during signup.')
+
+          const { error: insertError } = await supabase.from('users_').insert([
+            {
+              verified_id: user_id,
+              fullname: this.fullname,
+              email_address: this.email,
+              phone_number: this.phone_number,
+            },
+          ])
+
+          if (insertError) throw new Error('Unable to save user details to the database.')
+
+          this.showSnackbar('Signup successful please check your email!', 'success')
+          // Redirect to home page after successful signup
+          this.$router.push('/')
+
+          // Clear form fields after successful signup
+          this.fullname = ''
+          this.email = ''
+          this.phone_number = ''
+          this.password = ''
+          this.confirmPassword = ''
+        } catch (error) {
+          console.error('Signup error:', error)
+          this.showSnackbar(`Signup error: ${error.message}`, 'error')
+        }
+      }
+    },
+  },
+  mounted() {
+    const savedEmail = localStorage.getItem('email')
+    const savedPassword = localStorage.getItem('password')
+    if (savedEmail && savedPassword) {
+      this.loginEmail = savedEmail
+      this.loginPassword = savedPassword
+      this.rememberMe = true
+    }
+  },
+}
+</script>
