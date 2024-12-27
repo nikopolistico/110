@@ -1,16 +1,15 @@
 <template>
   <div>
-
     <div class="video-container">
-        <video autoplay muted loop class="background-video">
-          <source src="/public/images/background.mp4" type="video/mp4" />
-        </video>
-      </div>
+      <video autoplay muted loop class="background-video">
+        <source src="/public/images/background.mp4" type="video/mp4" />
+      </video>
+    </div>
 
     <!-- Routes Section -->
     <div class="routes-container">
       <v-col cols="12" class="text-center">
-        <h1>ROUTES FOR Multicab</h1>
+        <h1>ROUTES FOR Tricycle</h1>
       </v-col>
       <div class="routes-grid">
         <div v-for="(route, index) in routes" :key="index" class="route-card group">
@@ -50,6 +49,7 @@
         <button @click="saveRoute(startingLocation, endLocation)" class="save-button">
           Save Route
         </button>
+
         <!-- Map -->
         <div id="map" style="height: 70vh; margin-top: 10px;"></div>
 
@@ -61,7 +61,6 @@
 </template>
 
 <script>
-
 import { supabase } from '../../supabaseClient'
 import L from 'leaflet'; // Import Leaflet
 import 'leaflet-routing-machine'; // Import Leaflet Routing Machine
@@ -70,106 +69,94 @@ import { ref, onMounted, watch } from 'vue';
 export default {
   data() {
     return {
-      routes:[
-      {
-        id: "1",
-        barangays: [
-          { name: "Bangcasi Airport" }, { name: "Dumalagan Butuan" }, { name: "J.C Aquino Avenue" },
-          { name: "A.D. Curato St. Butuan" }, { name: "Durano St. Butuan" },
-          { name: "T. Calo St.Butuan" },
-        ]
-      },
+      routes: [
         {
-        id: "2",
-        barangays: [
-          { name: "Bangcasi" }, { name: "Dumalagan" }, { name: "J.C Aquino Avenue" },
-          { name: "North Montilla Blvd" }, { name: "T. Calo St.Butuan" },
-          { name: "J.C Aquino Ave" }, { name: "Dumalagan" }
-        ]
-      },
-      {
-        id: "4",
-        barangays: [
-          { name: "Bangcasi" }, { name: "Dumalagan" }, { name: "J.C Aquino Avenue" },
-          { name: "A. D. Curato St. Butuan" }, { name: "T. Sanchez St. Butuan" },
-          { name: "M. Calo St." }, { name: "G. Flores St. Butuan" },
-          { name: "Rosales St. " }, { name: "North Montilla Blvd. " },
-          { name: "BOPAI Puregold Butuan Tabuan" }, { name: "Holy Redeemer" },
-          { name: "Butuan City Hall" }, { name: "Gaisano Butuan" },
-          { name: "J. C. Aquino Butuan" }, { name: "Dumalagan" }
-        ]
-      },
-      {
-        id: "8",
-        barangays: [
-          { name: "Sto. Nino Diocesan Shrine " }, { name: "Los Angeles Butuan City" }, { name: "Sumilihon Butuan City" },
-          { name: "Taguibo" }, { name: "Ampayon" }, { name: "Philippine Science High School Butuan" },
-          { name: "Tiniwisan" }, { name: "Baan Butuan City" }, { name: "J.C. Aquino Ave." },
-          { name: "J. Rosales St. " }, { name: "Butuan City Hall" }, { name: "J. Satorre St." },
-          { name: "Jeels Masagana Farm" }, { name: "Salvador Calo St." }, { name: "Langihan Public Market" },
-          { name: "Magsaysay St. Butuan" }, { name: "Andaya St." }, { name: "North Montilla Blvd." },
-          { name: "McDonald's Butuan Downtown" }, { name: "R. Calo St." }, { name: "T. Sanchez St." },
-          { name: "M. Calo St." }, { name: "Baan Viaduct" },{ name: "Baan Km. 3" }, { name: "Ampayon" },
-          { name: "Taguibo" }, { name: "Sumilihon" }
-        ]
-      },
-      {
-        id: "12",
-        barangays: [
-          { name: "Amparo Butuan" }, { name: "Bit-os" }, { name: "Gaisano Butuan" },
-          { name: "San Vicente Butuan City" }, { name: "Montilla Blvd. Butuan" }, { name: "Holy Redeemer" },
-          { name: "City Hall" }, { name: "Mandacpan Butuan City" },
-        ]
-      },
-      {
-        id: "13",
-        barangays: [
-          { name: "Banza National High School Butuan" }, { name: "Brgy. Maug Butuan City" }, { name: "Mahogany Butuan City" },
-          { name: "Baan Butuan" }, { name: "M. Calo St. Butuan" },{ name: "G. Flores Avenue Butuan" }, { name: "Rosales St. Butuan City" }, { name: "North Montilla Blvd." },
-          { name: "Obrero Elem. School" }, { name: "Langihan Public Market" }, { name: "Butuan City Hall" },
-          { name: "J. Rosales St." }, { name: "J. C. Aquino Ave. (DBP)" }, { name: "Baan Viaduct" },
-          { name: "Brgy. Mahogany" }, { name: "Brgy. Maug" }, { name: "Brgy. Banza" }
-        ]
-      },
-      {
-        id: "10",
-        barangays: [
-          { name: "Dumalagan Butuan" }, { name: "J.C. Aquino Ave. Butuan" },
-          { name: "Baan Butuan" }, { name: "Baan Km. 3" },
-          { name: "Tiniwisan Butuan" }, { name: "Philippine Science High School Butuan" },
-          { name: "Ampayon" }, { name: "Vice Versa" }
-        ]
-      },
-      {
-        id: "7",
-        barangays: [
-          { name: "De Oro Butuan" }, { name: "Taligaman Butuan" }, { name: "Antongalon Elem. School Butuan" },
-          { name: "LTFRB Butuan" }, { name: "Ampayon Butuan" }, { name: "Caraga State University" },
-          { name: "Philippine Science High School Butuan" }, { name: "Tiniwisan Butuan" }, { name: "Butuan Medical Center" },
-          { name: "Baan Butuan" },
-          // Column 2
-          { name: "M. Calo St." }, { name: "G. Flores St." }, { name: "North Montilla Blvd. Butuan" },
-          { name: "Andaya St. Butuan" }, { name: "Langihan Public Market" }, { name: "Butuan City Hall" },
-          { name: "Development Bank Of The Philippines" }, { name: "SM Butuan" }, { name: "R. Calo St. Butuan" },
-          { name: "T. Sanchez St. Butuan" }, { name: "M. Calo St. Butuan" },
-          // Column 3
-          { name: "Baan Viaduct Butuan" }, { name: "Baan Km. 3" },
-          { name: "Tiniwisan Butuan" },{ name: "Ampayon" }, { name: "Antongalon Butuan" }, 
-          { name: "Taligaman Butuan" },
-        ]
-      },
-      {
-        id: "14",
-        barangays: [
-          { name: "Ampayon Butuan City" }, { name: "Tiniwisan Butuan City" }, { name: "Alviola Butuan City" },
-          { name: "ERA STORE Butuan City" }, { name: "Lemon Butuan City" }, { name: "Pigdaulan Butuan City" },
-          { name: "Mahay Butuan City" }, { name: "San Vicente Butuan City" },
-          { name: "Montilla Boulevard" }, { name: "SM Butuan City" },
-          { name: "Gaisano Butuan City" }, { name: "Robinsons Butuan City" }
-        ]
-      }
-    ],
-    isModalOpen: false, // Modal state
+          id: 'Red',
+          barangays: [
+            { name: "Holy Redeemer ButButuan Cityuan" },
+            { name: "Obrero Butuan City" },
+            { name: "Ambago Butuan City" },
+            { name: "Bading Butuan City" },
+            { name: "Agusan Pequeño" },
+            { name: "Pagatpatan Butuan City" }
+          ]
+        },
+        {
+          id: "White",
+          barangays: [
+            { name: "Paradise Village Butuan" },
+            { name: "Balangay Shrine Butuan City" },
+            { name: "Libertad Butuan City" },
+            { name: "Bancasi Butuan City" },
+            { name: "Pinamanculan Butuan City" },
+            { name: "Chinese Cemetery Butuan City" },
+            { name: "Dumalagan Butuan City" },
+          ],
+        },
+        {
+          id: "yellow",
+          barangays: [
+            { name: "Holy Redeemer Butuan City" },
+            { name: "Obrero Butuan City" },
+            { name: "Doongan Butuan City" },
+            { name: "Ambago Butuan City" },
+            { name: "Babag Butuan City" },
+            { name: "Bading Butuan City" },
+            { name: "Agusan Pequeño Butuan City" },
+            { name: "Pagatpatan Butuan City" },
+            { name: "P. Rizal Butuan City" },
+            { name: "Villa Kananga Butuan City" },
+            { name: "Imadejas Butuan City" },
+            { name: "Bayanihan Butuan City" },
+            { name: "Golden Ribbon Butuan City" },
+            { name: "Maon Butuan City" },
+            { name: "Pangabuggan Butuan City" },
+            { name: "San Vicente Butuan City" },
+            { name: "Bit-os Butuan City" }
+          ],
+        },
+        {
+          id: "Green",
+          barangays: [
+            { name: "Langihan Butuan City" },
+            { name: "Slaughterhouse Butuan City" },
+            { name: "Doongan Butuan City" },
+            { name: "Ambago Butuan City" },
+            { name: "Babag Butuan City" },
+            { name: "Bading Butuan City" },
+            { name: "Agusan Pequeño" },
+            { name: "Pagatpatan Butuan City" },
+            { name: "P. Rizal ButButuan Cityuan" },
+            { name: "Villa Kananga Butuan City" },
+            { name: "Imadejas Butuan City" },
+            { name: "Bayanihan Butuan City" },
+            { name: "Golden Ribbon Butuan City" },
+            { name: "Maon Butuan City" },
+            { name: "Pangabuggan Butuan City" },
+            { name: "Mandacpan Butuan City" },
+            { name: "Bit-os Butuan City" },
+            { name: "Baan Riverside Butuan City" },
+            { name: "Mahogany Butuan City" },
+            { name: "Buhangin Butuan" },
+            { name: "Baan Km.3 Butuan" },
+            { name: "IRA Homes Butuan" },
+            { name: "Lemon Butuan" },
+            { name: "Tiniwisan Butuan" },
+            { name: "Cabcabon Butuan" },
+            { name: "Bobon Butuan" },
+            { name: "Taligaman Butuan" },
+            { name: "Taligaman High School Butuan" },
+            { name: "Basag Butuan" },
+            { name: "Purok 5 Basag Butuan)" },
+            { name: "Ampayon Public Market Butuan" },
+            { name: "Ampayon Butuan" },
+            { name: "Liboon Subdivision Butuan" },
+            { name: "Caraga State University" },
+            { name: "Camayah" }
+          ],
+        }
+      ],
+      isModalOpen: false, // Modal state
       selectedRoute: null, // Selected route
       startingLocation: '',
       endLocation: '',
@@ -177,8 +164,9 @@ export default {
       markers: [], // Array to store markers
       routeControl: null // Routing control instance
     };
-},
-methods: {
+  },
+
+  methods: {
     async getCoordinatesFromGeocodingAPI(location) {
       const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&addressdetails=1`;
       const response = await fetch(url);
@@ -264,11 +252,13 @@ methods: {
             routingContainer.style.fontSize = '12px'; // Adjust font size
         }
       }
+
     },
     openRouteModal(route) {
   this.selectedRoute = route;
   this.isModalOpen = true;
-  this.showRoute();  // Corrected: Ensure showRoute is called here
+  this.showRoute();
+  // Corrected: Ensure showRoute is called here
 },
 
 async showRoute() {
@@ -316,9 +306,7 @@ async showRoute() {
   if (locations.length < 5) {
     console.log("Not enough valid coordinates to create a route.");
   }
-}
-,
-
+},
 
     closeRouteModal() {
       this.isModalOpen = false;
@@ -331,6 +319,7 @@ async showRoute() {
         this.map = null;
       }
     },
+
     resetRoute() {
   if (this.routeControl) {
     this.map.removeControl(this.routeControl);  // Remove the route from the map
@@ -370,7 +359,7 @@ async showRoute() {
               RoutNTricC: this.selectedRoute.id,
               origin: startingLocation,
               destination: endLocation,
-              vehicle_type: 'multicab',
+              vehicle_type: 'tricyle',
               v_id: userId
             }
           ])
@@ -425,8 +414,7 @@ async showRoute() {
       }
     }
   }
-}
-
+};
 </script>
 
 <style scoped>
@@ -551,7 +539,7 @@ async showRoute() {
 
 .routes-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
 }
 
