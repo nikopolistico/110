@@ -257,6 +257,12 @@ methods: {
         this.routeControl = L.Routing.control({
           waypoints: locations,
         }).addTo(this.map);
+
+        const routingContainer = document.querySelector('.leaflet-routing-container');
+        if (routingContainer) {
+            routingContainer.style.width = '200px'; // Adjust the width
+            routingContainer.style.fontSize = '12px'; // Adjust font size
+        }
       }
     },
     openRouteModal(route) {
@@ -425,6 +431,15 @@ async showRoute() {
 
 <style scoped>
 /* Modal Styles */
+
+
+@media (max-width: 600px) {
+    .leaflet-routing-container {
+        width: 150px;
+        font-size: 5px;
+    }
+}
+
 
 .background-video {
   position: fixed;
